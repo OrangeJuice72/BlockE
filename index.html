@@ -83,7 +83,7 @@
 
         .circle-btn { position: relative; width: 12vw; max-width: 45px; aspect-ratio: 1/1; height: auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: clamp(16px, 4vw, 20px); cursor: pointer; }
         .circle-btn:active { transform: scale(0.9); }
-        .badge { position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; border: 2px solid #5C3A21; text-shadow: none; box-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        .badge { position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; border: 2px solid #5C3A21; box-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
         .power-active { border-color: #FFD700 !important; box-shadow: 0 0 15px #FFD700, inset 0 0 10px rgba(0,0,0,0.5) !important; transform: scale(1.1); }
         .empty-power { opacity: 0.5; filter: grayscale(100%); cursor: not-allowed; }
 
@@ -111,7 +111,7 @@
 </head>
 <body>
 
-    <audio id="bg-music" src="Assets/INNOCENT.wav" loop preload="auto" crossorigin="anonymous"></audio>
+    <audio id="bg-music" src="Assets/INNOCENT.wav" loop preload="auto"></audio>
 
     <div class="app-window">
         
@@ -204,44 +204,20 @@
         let parsedSfx = parseFloat(rawSfx);
         let sfxVolume = !isNaN(parsedSfx) ? parsedSfx : 1.0;
 
+        const bgMusicEl = document.getElementById('bg-music');
+
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('music-volume').value = musicVolume;
             document.getElementById('sfx-volume').value = sfxVolume;
+            bgMusicEl.volume = musicVolume; // Apply saved volume immediately!
         });
 
-        // --- 🌿 MASTER AUDIO BUS SYSTEM 🌿 ---
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
-        let masterSfxGain;
-        let bgMusicGain;
-        const bgMusicEl = document.getElementById('bg-music');
+        // --- 🎵 MUSIC LOGIC ---
         let musicStarted = false;
-
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new AudioContext();
-                
-                // 1. The SFX Hub (Stops sounds from stacking too loud!)
-                masterSfxGain = audioCtx.createGain();
-                masterSfxGain.gain.value = sfxVolume;
-                masterSfxGain.connect(audioCtx.destination);
-
-                // 2. The iOS Background Music Bypass
-                try {
-                    const source = audioCtx.createMediaElementSource(bgMusicEl);
-                    bgMusicGain = audioCtx.createGain();
-                    bgMusicGain.gain.value = musicVolume;
-                    source.connect(bgMusicGain);
-                    bgMusicGain.connect(audioCtx.destination);
-                } catch(e) {
-                    console.log("Using standard HTML audio fallback.");
-                }
-            }
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
 
         function startBackgroundMusic() {
             if (!musicStarted && musicVolume > 0) {
+                bgMusicEl.volume = musicVolume;
                 bgMusicEl.play().catch(e => console.log("Waiting for interaction..."));
                 musicStarted = true;
             }
@@ -251,10 +227,9 @@
             let parsed = parseFloat(val);
             musicVolume = !isNaN(parsed) ? parsed : 0.4;
             
-            if (bgMusicGain) bgMusicGain.gain.value = musicVolume;
-            bgMusicEl.volume = musicVolume; // Fallback
-            
+            bgMusicEl.volume = musicVolume; // Updates standard HTML5 audio directly
             localStorage.setItem('meadowMusicVol', musicVolume); 
+            
             if (musicVolume > 0 && !musicStarted) startBackgroundMusic();
         }
 
@@ -266,6 +241,23 @@
             localStorage.setItem('meadowSfxVol', sfxVolume);
         }
 
+        // --- 🌿 PEACEFUL SFX SYNTHESIZER ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        let masterSfxGain;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+                
+                // The SFX Hub 
+                masterSfxGain = audioCtx.createGain();
+                masterSfxGain.gain.value = sfxVolume;
+                masterSfxGain.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
         function playSound(type) {
             if (sfxVolume <= 0 || !audioCtx) return; 
             const now = audioCtx.currentTime;
@@ -273,7 +265,6 @@
             const osc = audioCtx.createOscillator(); 
             const gain = audioCtx.createGain();
             
-            // Route perfectly to the master SFX bus
             osc.connect(gain); 
             gain.connect(masterSfxGain);
 
@@ -297,7 +288,7 @@
                     subOsc.start(now); subOsc.stop(now + 1.2);
                     subOsc.onended = () => subGain.disconnect();
                 });
-                return; // Multi-oscillator handled above
+                return; 
             } else if (type === 'magic') {
                 [600, 800, 1000, 1200].forEach((freq, i) => {
                     const subOsc = audioCtx.createOscillator(); const subGain = audioCtx.createGain();
@@ -323,7 +314,6 @@
             if (duration > 0) {
                 osc.start(now); 
                 osc.stop(now + duration);
-                // Strict Garbage Collection to stop nodes from stacking! 🗑️
                 osc.onended = () => gain.disconnect(); 
             }
         }
@@ -471,12 +461,13 @@
             document.querySelector('.power-up-circles').classList.remove('hint-glow'); 
 
             if (powerUps[type] <= 0) { playSound('error'); return; }
-            if (activePowerUp === type) { clearPowerUpState(); return; }
+            if (activePowerUp === type) { clearPowerUpState(); playSound('place'); return; }
             
             clearPowerUpState(); 
             activePowerUp = type;
             document.getElementById(`btn-${type}`).classList.add('power-active');
             document.getElementById('grid').style.cursor = 'crosshair';
+            playSound('place'); 
         }
 
         function useRefresh() {
