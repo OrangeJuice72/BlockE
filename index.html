@@ -5,36 +5,732 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Peaceful Meadow Block Puzzle</title>
     <style>
-        /* The Website Frame */
-        body { 
+        /* --- THE IOS VIEWPORT LOCK --- */
+        html, body {
             margin: 0; padding: 0; 
-            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; 
+            width: 100%; height: 100%; /* Strict height */
+            position: fixed; /* Locks the app in place, killing Safari scroll bounce and URL bar resizing! */
+            top: 0; left: 0; right: 0; bottom: 0;
             background-color: #A8E6CF; 
-            display: flex; justify-content: center; align-items: center; 
-            height: 100dvh; width: 100vw;
-            color: #3e2723; user-select: none; overflow: hidden; 
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; 
+            color: #3e2723; user-select: none; -webkit-user-select: none; overflow: hidden; 
             touch-action: none; -webkit-touch-callout: none;
         }
         
         /* The Main App Window 🖼️ */
         .app-window { 
-            width: 100vw; max-width: 500px; height: 100dvh; 
+            width: 100%; max-width: 500px; height: 100%; 
+            margin: 0 auto; /* Centers the app if played on a larger screen/iPad */
             background-image: url('Assets/bg.png'); 
-            background-size: cover; background-position: center; background-repeat: no-repeat;
+            background-size: cover; background-position: center bottom; background-repeat: no-repeat;
             box-shadow: 0 0 30px rgba(0,0,0,0.5); 
             position: relative;
+            display: flex; flex-direction: column;
         }
 
         /* Screens/Views */
         .view {
             width: 100%; height: 100%;
-            padding-top: env(safe-area-inset-top, 20px); padding-bottom: env(safe-area-inset-bottom, 20px);
-            padding-left: 5vw; padding-right: 5vw; box-sizing: border-box;
-            display: none; flex-direction: column; justify-content: space-evenly; 
+            padding: calc(env(safe-area-inset-top, 20px) + 10px) 5vw calc(env(safe-area-inset-bottom, 20px) + 10px) 5vw;
+            box-sizing: border-box;
+            display: none; flex-direction: column; align-items: center; justify-content: center; 
+            gap: 2vh; /* Strict spacing between elements */
         }
         .view.active { display: flex; }
 
         /* --- HOME SCREEN STYLES 🏡 --- */
+        .home-content { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh; height: 100%; width: 100%; }
+        .game-title { font-size: clamp(40px, 10vw, 55px); font-weight: bold; color: #1a4d2e; text-align: center; line-height: 1.1; margin: 0; text-shadow: 2px 2px 0px #FFF8DC, -1px -1px 0px #FFF8DC, 0px 4px 10px rgba(0,0,0,0.5); }
+        .play-btn { font-size: 32px; padding: 20px 60px; border-radius: 50px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(0,0,0,0.5); }
+        .play-btn:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0,0,0,0.4); }
+        
+        /* --- GAME SCREEN HEADER & SCORE CONTAINERS ✨🏆 --- */
+        .wooden-ui { background: #8B5A2B; border: 3px solid #5C3A21; border-radius: 12px; color: #FFF8DC; text-align: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 2px 2px 5px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.8); transition: all 0.2s; }
+        .home-high-score { font-size: 18px; padding: 15px 40px; border-radius: 20px; }
+        .home-high-score span { font-size: 32px; font-weight: bold; display: block; margin-top: 5px; color: #FFDAC1; }
+
+        .header { display: flex; flex-direction: row; justify-content: center; align-items: center; width: 100%; max-width: 450px; position: relative; gap: 3%; }
+        
+        .score-display { background-size: contain; background-position: center; background-repeat: no-repeat; position: relative; }
+        .score-val { position: absolute; left: 50%; width: 85%; white-space: nowrap; overflow: hidden; text-align: center; font-weight: bold; color: #DEB887; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); margin: 0; padding: 0; transform: translate(-50%, -50%); }
+
+        /* FIXED: Locked Aspect Ratios ensure the images NEVER warp, so the numbers stay perfectly inside! */
+        .high-score-container { width: 35%; aspect-ratio: 200/80; height: auto; background-image: url('Assets/high_score_container.png'); }
+        #high-score-val { top: 60%; font-size: clamp(16px, 4vw, 22px); }
+
+        .current-score-container { width: 45%; aspect-ratio: 300/120; height: auto; background-image: url('Assets/current_score_container.png'); transition: transform 0.2s; }
+        #score-value { top: 60%; font-size: clamp(20px, 5.5vw, 30px); }
+
+        /* Settings Gear Pinned to the Right! */
+        .settings { position: absolute; right: 0; width: 15%; max-width: 50px; aspect-ratio: 1/1; height: auto; background-image: url('Assets/settings.png'); background-size: contain; background-position: center; background-repeat: no-repeat; cursor: pointer; transition: transform 0.1s; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4)); }
+        .settings:active { transform: scale(0.9); }
+        
+        /* --- GRID & SHAPES 🧩 --- */
+        .grid-container { display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); gap: 2px; background: #5C3A21; padding: 4px; border-radius: 8px; width: 100%; max-width: 420px; aspect-ratio: 1/1; box-shadow: 0 5px 20px rgba(0,0,0,0.7); position: relative; }
+        .grid-cell { background-color: #DEB887; border-radius: 4px; box-shadow: inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2); transition: transform 0.1s; background-size: cover; background-position: center; background-repeat: no-repeat; aspect-ratio: 1/1; }
+        
+        .shape-container { display: grid; gap: 2px; cursor: grab; position: absolute; z-index: 100; }
+        .block-unit { width: 100%; height: 100%; border-radius: 4px; background-color: #8cc63f; background-size: cover; background-position: center; background-repeat: no-repeat; box-shadow: 1px 1px 4px rgba(0,0,0,0.5); }
+        .block-empty { width: 100%; height: 100%; visibility: hidden; pointer-events: none; }
+
+        .next-up-wrapper { text-align: center; width: 100%; max-width: 420px; display: flex; flex-direction: column; justify-content: center; margin-top: 1vh; }
+        .next-up-label { font-weight: bold; letter-spacing: 2px; margin-bottom: 5px; color: #1a4d2e; text-shadow: 1px 1px 3px #ffffff, -1px -1px 3px #ffffff; font-size: clamp(12px, 3vw, 16px); }
+        .next-up-slots { display: flex; justify-content: space-between; gap: 10px; height: 10vh; min-height: 70px; max-height: 90px; }
+        .slot { flex: 1; height: 100%; background: rgba(139, 90, 43, 0.7); border: 2px dashed #5C3A21; border-radius: 10px; display: flex; justify-content: center; align-items: center; position: relative; }
+        
+        /* --- FOOTER & POWER UPS 💣 --- */
+        .footer { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 420px; margin-top: 1vh; }
+        .power-ups { display: flex; flex-direction: column; justify-content: center; gap: 5px; }
+        .power-ups-label { font-size: 10px; font-weight: bold; color: #1a4d2e; text-shadow: 1px 1px 3px #ffffff, -1px -1px 3px #ffffff; }
+        .power-up-circles { display: flex; gap: 10px; border-radius: 50px; transition: all 0.3s; }
+        
+        @keyframes pulse-glow { 0% { filter: drop-shadow(0 0 0px #FFD700); transform: scale(1); } 50% { filter: drop-shadow(0 0 15px #FFD700); transform: scale(1.05); } 100% { filter: drop-shadow(0 0 0px #FFD700); transform: scale(1); } }
+        .hint-glow { animation: pulse-glow 1.5s ease-in-out infinite; }
+
+        .circle-btn { position: relative; width: 12vw; max-width: 45px; aspect-ratio: 1/1; height: auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: clamp(16px, 4vw, 20px); cursor: pointer; }
+        .circle-btn:active { transform: scale(0.9); }
+        .badge { position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; border: 2px solid #5C3A21; box-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        .power-active { border-color: #FFD700 !important; box-shadow: 0 0 15px #FFD700, inset 0 0 10px rgba(0,0,0,0.5) !important; transform: scale(1.1); }
+        .empty-power { opacity: 0.5; filter: grayscale(100%); cursor: not-allowed; }
+
+        .home-btn { width: 15vw; max-width: 50px; aspect-ratio: 1/1; height: auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: clamp(20px, 5vw, 24px); cursor: pointer; }
+        .home-btn:active { transform: scale(0.9); }
+
+        /* --- MODALS & CUSTOM SLIDER 🛑⚙️ --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: #8B5A2B; border: 4px solid #5C3A21; border-radius: 20px; padding: 40px 30px; text-align: center; color: #FFF8DC; box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 0 10px 40px rgba(0,0,0,0.8); width: 85%; max-width: 350px; display: flex; flex-direction: column; gap: 20px; }
+        .modal-title { font-size: 32px; font-weight: bold; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        .modal-score { font-size: 20px; margin-bottom: 10px; color: #FFDAC1; }
+        .modal-score span { font-size: 36px; font-weight: bold; color: #FFF8DC; display: block; margin-top: 5px; }
+        .modal-btn { background: #5C3A21; color: #FFF8DC; border: 2px solid #DEB887; padding: 15px 20px; font-size: 18px; font-family: inherit; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .modal-btn:active { transform: scale(0.95); }
+        .btn-danger { background: #8c2a2a; border-color: #ff9aa2; }
+
+        .setting-group { display: flex; flex-direction: column; gap: 10px; text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; border: 2px solid #5C3A21; }
+        .setting-group label { font-size: 16px; font-weight: bold; color: #FFDAC1; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; }
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type="range"]:focus { outline: none; }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 12px; cursor: pointer; background: #3e2723; border-radius: 10px; box-shadow: inset 1px 1px 4px rgba(0,0,0,0.8); border: 1px solid #5C3A21; }
+        input[type="range"]::-webkit-slider-thumb { border: 2px solid #5C3A21; height: 26px; width: 26px; border-radius: 50%; background: #FFD700; cursor: pointer; -webkit-appearance: none; margin-top: -8px; box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 2px 2px 5px rgba(255,255,255,0.5); }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" src="Assets/INNOCENT.wav" loop preload="auto"></audio>
+
+    <div class="app-window">
+        
+        <div id="home-view" class="view active">
+            <div class="home-content">
+                <h1 class="game-title">Peaceful<br>Meadow</h1>
+                
+                <div class="wooden-ui home-high-score">
+                    HIGH SCORE<br><span id="home-screen-high-score">0</span>
+                </div>
+
+                <button class="wooden-ui play-btn" onclick="startGame()">PLAY ▶️</button>
+                <button class="modal-btn" onclick="openSettings()" style="width: 200px;">⚙️ Settings</button>
+            </div>
+        </div>
+
+        <div id="game-view" class="view">
+            
+            <div class="header">
+                <div class="score-display high-score-container">
+                    <p class="score-val" id="high-score-val">0</p>
+                </div>
+                <div class="score-display current-score-container">
+                    <p class="score-val" id="score-value">0</p>
+                </div>
+                <div class="settings" onclick="openSettings()"></div>
+            </div>
+
+            <div class="grid-container" id="grid"></div>
+
+            <div class="next-up-wrapper">
+                <div class="next-up-label">NEXT UP</div>
+                <div class="next-up-slots">
+                    <div class="slot" id="slot-1"></div>
+                    <div class="slot" id="slot-2"></div>
+                    <div class="slot" id="slot-3"></div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="power-ups">
+                    <span class="power-ups-label">POWER UPS</span>
+                    <div class="power-up-circles">
+                        <div class="wooden-ui circle-btn" id="btn-wand" onclick="togglePowerUp('wand')">✨<div class="badge" id="badge-wand">3</div></div>
+                        <div class="wooden-ui circle-btn" id="btn-bomb" onclick="togglePowerUp('bomb')">💣<div class="badge" id="badge-bomb">3</div></div>
+                        <div class="wooden-ui circle-btn" id="btn-refresh" onclick="useRefresh()">🔄<div class="badge" id="badge-refresh">3</div></div>
+                    </div>
+                </div>
+                <div class="wooden-ui home-btn" onclick="goHome()">🏠</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="game-over-modal">
+        <div class="modal-content">
+            <div class="modal-title">OUT OF MOVES!</div>
+            <div class="modal-score">Final Score <br><span id="final-score-val">0</span></div>
+            <button class="modal-btn" onclick="resetGame()">Play Again 🔄</button>
+            <button class="modal-btn" style="background: #3e2723;" onclick="goHomeFromGameOver()">🏠 Main Menu</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-title">SETTINGS</div>
+            
+            <div class="setting-group">
+                <label for="music-volume"><span>Music Volume</span> 🎶</label>
+                <input type="range" id="music-volume" min="0" max="1" step="0.05" onchange="updateMusicVolume(this.value)" oninput="updateMusicVolume(this.value)">
+            </div>
+
+            <div class="setting-group">
+                <label for="sfx-volume"><span>Sound Effects</span> 🔊</label>
+                <input type="range" id="sfx-volume" min="0" max="1" step="0.05" onchange="updateSfxVolume(this.value)" oninput="updateSfxVolume(this.value)">
+            </div>
+
+            <button class="modal-btn btn-danger" onclick="resetHighScore()" style="margin-top: 10px;">Reset High Score 🗑️</button>
+            <button class="modal-btn" onclick="closeSettings()">Close ❌</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 💾 IRON-CLAD MEMORY BANK ---
+        let rawMusic = localStorage.getItem('meadowMusicVol');
+        let parsedMusic = parseFloat(rawMusic);
+        let musicVolume = !isNaN(parsedMusic) ? parsedMusic : 0.4;
+
+        let rawSfx = localStorage.getItem('meadowSfxVol');
+        let parsedSfx = parseFloat(rawSfx);
+        let sfxVolume = !isNaN(parsedSfx) ? parsedSfx : 1.0;
+
+        const bgMusicEl = document.getElementById('bg-music');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('music-volume').value = musicVolume;
+            document.getElementById('sfx-volume').value = sfxVolume;
+            bgMusicEl.volume = musicVolume; 
+        });
+
+        // --- 🎵 MUSIC LOGIC ---
+        let musicStarted = false;
+
+        function startBackgroundMusic() {
+            if (!musicStarted && musicVolume > 0) {
+                bgMusicEl.volume = musicVolume;
+                bgMusicEl.play().catch(e => console.log("Waiting for interaction..."));
+                musicStarted = true;
+            }
+        }
+
+        function updateMusicVolume(val) {
+            let parsed = parseFloat(val);
+            musicVolume = !isNaN(parsed) ? parsed : 0.4;
+            
+            bgMusicEl.volume = musicVolume; 
+            localStorage.setItem('meadowMusicVol', musicVolume); 
+            
+            if (musicVolume > 0 && !musicStarted) startBackgroundMusic();
+        }
+
+        function updateSfxVolume(val) {
+            let parsed = parseFloat(val);
+            sfxVolume = !isNaN(parsed) ? parsed : 1.0;
+            
+            if (masterSfxGain) masterSfxGain.gain.value = sfxVolume;
+            localStorage.setItem('meadowSfxVol', sfxVolume);
+        }
+
+        // --- 🌿 PEACEFUL SFX SYNTHESIZER ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        let masterSfxGain;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+                masterSfxGain = audioCtx.createGain();
+                masterSfxGain.gain.value = sfxVolume;
+                masterSfxGain.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playSound(type) {
+            if (sfxVolume <= 0 || !audioCtx) return; 
+            const now = audioCtx.currentTime;
+
+            const osc = audioCtx.createOscillator(); 
+            const gain = audioCtx.createGain();
+            
+            osc.connect(gain); 
+            gain.connect(masterSfxGain);
+
+            let duration = 0;
+
+            if (type === 'place') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                gain.gain.setValueAtTime(0.5, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                duration = 0.1;
+            } else if (type === 'error') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                duration = 0.2;
+            } else if (type === 'clear') {
+                [523.25, 659.25, 783.99].forEach((freq, i) => { 
+                    const subOsc = audioCtx.createOscillator(); const subGain = audioCtx.createGain();
+                    subOsc.type = 'sine'; subOsc.frequency.value = freq;
+                    subGain.gain.setValueAtTime(0, now); subGain.gain.linearRampToValueAtTime(0.15, now + 0.05 + (i * 0.05));
+                    subGain.gain.linearRampToValueAtTime(0, now + 0.8 + (i * 0.2));
+                    subOsc.connect(subGain); subGain.connect(masterSfxGain); 
+                    subOsc.start(now); subOsc.stop(now + 1.2);
+                    subOsc.onended = () => subGain.disconnect();
+                });
+                return; 
+            } else if (type === 'magic') {
+                [600, 800, 1000, 1200].forEach((freq, i) => {
+                    const subOsc = audioCtx.createOscillator(); const subGain = audioCtx.createGain();
+                    subOsc.type = 'sine'; subOsc.frequency.value = freq; const startTime = now + (i * 0.05);
+                    subGain.gain.setValueAtTime(0, startTime); subGain.gain.linearRampToValueAtTime(0.1, startTime + 0.02);
+                    subGain.gain.linearRampToValueAtTime(0, startTime + 0.3);
+                    subOsc.connect(subGain); subGain.connect(masterSfxGain); 
+                    subOsc.start(startTime); subOsc.stop(startTime + 0.3);
+                    subOsc.onended = () => subGain.disconnect();
+                });
+                return; 
+            } else if (type === 'explosion') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(80, now); osc.frequency.exponentialRampToValueAtTime(30, now + 0.6);
+                gain.gain.setValueAtTime(0.5, now); gain.gain.linearRampToValueAtTime(0, now + 0.6);
+                duration = 0.6;
+            } else if (type === 'gameover') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(100, now + 1);
+                gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.1);
+                gain.gain.linearRampToValueAtTime(0, now + 1);
+                duration = 1.0;
+            }
+
+            if (duration > 0) {
+                osc.start(now); 
+                osc.stop(now + duration);
+                osc.onended = () => gain.disconnect(); 
+            }
+        }
+
+        // --- 📺 VIEW MANAGER ---
+        let gameInitialized = false;
+
+        function startGame() {
+            initAudio(); startBackgroundMusic(); 
+            document.getElementById('home-view').classList.remove('active');
+            document.getElementById('game-view').classList.add('active');
+            
+            requestAnimationFrame(() => {
+                if (!gameInitialized) {
+                    ['slot-1', 'slot-2', 'slot-3'].forEach(spawnShape);
+                    gameInitialized = true;
+                }
+                // Only trigger resize logic if we really need to update cell bounds
+                let cells = document.querySelectorAll('.grid-cell');
+                if (cells.length > 0 && cells[0].getBoundingClientRect().width === 0) {
+                    window.dispatchEvent(new Event('resize'));
+                }
+            });
+        }
+
+        function goHome() {
+            if (activePowerUp) clearPowerUpState();
+            document.getElementById('game-view').classList.remove('active');
+            document.getElementById('home-view').classList.add('active');
+            updateHighScoreDisplays();
+        }
+
+        function goHomeFromGameOver() {
+            document.getElementById('game-over-modal').style.display = 'none';
+            resetGameCore(); goHome();
+        }
+
+        // --- 🧩 CORE GAME LOGIC ---
+        const gridContainer = document.getElementById('grid');
+        const gridSize = 9;
+        const cells = [];
+        let gridState = new Array(gridSize * gridSize).fill(0); 
+        let score = 0;
+        let highScore = localStorage.getItem('meadowHighScore') || 0;
+
+        function updateHighScoreDisplays() {
+            document.getElementById('high-score-val').innerText = highScore;
+            document.getElementById('home-screen-high-score').innerText = highScore;
+        }
+        updateHighScoreDisplays(); 
+
+        let powerUps = { wand: 3, bomb: 3, refresh: 3 };
+        let activePowerUp = null; 
+
+        function getRandomBlockImage() {
+            if (Math.random() < 0.75) {
+                return "url('Assets/block_1.png')";
+            } else {
+                const decorativeBlocks = [
+                    "url('Assets/block_2.png')", "url('Assets/block_3.png')",
+                    "url('Assets/block_4.png')", "url('Assets/block_5.png')", 
+                    "url('Assets/block_6.png')", "url('Assets/block_7.png')", 
+                    "url('Assets/block_8.png')", "url('Assets/block_9.png')", 
+                    "url('Assets/block_10.png')"
+                ];
+                return decorativeBlocks[Math.floor(Math.random() * decorativeBlocks.length)];
+            }
+        }
+        
+        const shapeDefinitions = [
+            [[1]], [[1, 1]], [[1], [1]], [[1, 1, 1]], [[1], [1], [1]], 
+            [[1, 1, 1, 1]], [[1], [1], [1], [1]], [[1, 1, 1, 1, 1]], [[1], [1], [1], [1], [1]],              
+            [[1, 1], [1, 1]], [[1, 1, 1], [1, 1, 1], [1, 1, 1]],      
+            [[1, 0], [1, 1]], [[0, 1], [1, 1]], [[1, 1], [1, 0]], [[1, 1], [0, 1]],                       
+            [[1, 1, 1], [1, 0, 0], [1, 0, 0]], [[1, 1, 1], [0, 0, 1], [0, 0, 1]],      
+            [[1, 1, 1], [0, 1, 0]], [[0, 1, 0], [1, 1, 1]], [[1, 1, 0], [0, 1, 1]], [[0, 1, 1], [1, 1, 0]]                  
+        ];
+
+        for (let i = 0; i < gridSize * gridSize; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('grid-cell');
+            cell.dataset.index = i;
+            gridContainer.appendChild(cell);
+            cells.push(cell);
+        }
+
+        function getCellSize() {
+            const cell = document.querySelector('.grid-cell');
+            let width = cell ? cell.getBoundingClientRect().width : 0; 
+            if (width === 0) { width = (window.innerWidth * 0.9) / 9; } // Fallback math
+            return width; 
+        }
+
+        function spawnShape(slotId) {
+            const slot = document.getElementById(slotId);
+            slot.innerHTML = ''; 
+            
+            const shapeDef = shapeDefinitions[Math.floor(Math.random() * shapeDefinitions.length)];
+            
+            const shapeEl = document.createElement('div');
+            shapeEl.classList.add('shape-container');
+            
+            const rows = shapeDef.length;
+            const cols = shapeDef[0].length;
+            const cellSize = getCellSize(); 
+
+            const trayScale = 0.8; 
+            const visualSize = cellSize * trayScale;
+
+            shapeEl.style.gridTemplateColumns = `repeat(${cols}, ${visualSize}px)`; 
+            shapeEl.style.gridTemplateRows = `repeat(${rows}, ${visualSize}px)`;
+
+            shapeDef.forEach(row => {
+                row.forEach(val => {
+                    const block = document.createElement('div');
+                    if (val === 1) {
+                        block.classList.add('block-unit');
+                        block.style.backgroundImage = getRandomBlockImage();
+                    } else {
+                        block.classList.add('block-empty');
+                    }
+                    shapeEl.appendChild(block);
+                });
+            });
+
+            shapeEl.dataset.shape = JSON.stringify(shapeDef);
+            shapeEl.style.position = 'static'; 
+            
+            slot.appendChild(shapeEl);
+            shapeEl.addEventListener('mousedown', startDrag);
+            shapeEl.addEventListener('touchstart', startDrag, {passive: false});
+        }
+
+        // Only resize shapes if the window physically changes size
+        window.addEventListener('resize', () => {
+            // Prevent resize glitching on mobile if virtual keyboard/url bar pops up
+            if (document.activeElement.tagName === 'INPUT') return; 
+            
+            ['slot-1', 'slot-2', 'slot-3'].forEach(slotId => {
+                const slot = document.getElementById(slotId);
+                if (slot && slot.children.length > 0) {
+                    const shapeDef = JSON.parse(slot.children[0].dataset.shape);
+                    const cellSize = getCellSize() * 0.8;
+                    slot.children[0].style.gridTemplateColumns = `repeat(${shapeDef[0].length}, ${cellSize}px)`;
+                    slot.children[0].style.gridTemplateRows = `repeat(${shapeDef.length}, ${cellSize}px)`;
+                }
+            });
+        });
+
+        // --- 💣 POWER UP LOGIC ---
+        function togglePowerUp(type) {
+            initAudio();
+            document.querySelector('.power-up-circles').classList.remove('hint-glow'); 
+
+            if (powerUps[type] <= 0) { playSound('error'); return; }
+            if (activePowerUp === type) { clearPowerUpState(); return; }
+            
+            clearPowerUpState(); 
+            activePowerUp = type;
+            document.getElementById(`btn-${type}`).classList.add('power-active');
+            document.getElementById('grid').style.cursor = 'crosshair';
+        }
+
+        function useRefresh() {
+            initAudio();
+            document.querySelector('.power-up-circles').classList.remove('hint-glow');
+
+            if (powerUps.refresh <= 0) { playSound('error'); return; }
+            if (activePowerUp) clearPowerUpState(); 
+            
+            playSound('clear'); 
+            ['slot-1', 'slot-2', 'slot-3'].forEach(spawnShape);
+            powerUps.refresh--;
+            updatePowerUpUI('refresh');
+            
+            setTimeout(checkGameOver, 300); 
+        }
+
+        function clearPowerUpState() {
+            activePowerUp = null;
+            document.getElementById('btn-wand').classList.remove('power-active');
+            document.getElementById('btn-bomb').classList.remove('power-active');
+            document.getElementById('grid').style.cursor = 'default';
+        }
+
+        function updatePowerUpUI(type) {
+            let badge = document.getElementById(`badge-${type}`);
+            badge.innerText = powerUps[type];
+            if(powerUps[type] === 0) document.getElementById(`btn-${type}`).classList.add('empty-power');
+        }
+
+        function clearSingleCell(index) {
+            gridState[index] = 0;
+            cells[index].style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                cells[index].style.backgroundImage = 'none';
+                cells[index].style.backgroundColor = '#DEB887';
+                cells[index].style.boxShadow = 'inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2)';
+                cells[index].style.transform = 'scale(1)';
+            }, 150);
+        }
+
+        gridContainer.addEventListener('click', (e) => {
+            if (!activePowerUp) return; 
+            const cell = e.target.closest('.grid-cell');
+            if (!cell) return;
+            const index = parseInt(cell.dataset.index);
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+            
+            if (activePowerUp === 'wand') {
+                if (gridState[index] === 0) { playSound('error'); return; }
+                playSound('magic');
+                clearSingleCell(index);
+                powerUps.wand--; updatePowerUpUI('wand'); clearPowerUpState();
+                setTimeout(checkGameOver, 300); 
+            } else if (activePowerUp === 'bomb') {
+                playSound('explosion');
+                for(let r = -1; r <= 1; r++) {
+                    for(let c = -1; c <= 1; c++) {
+                        let targetRow = row + r; let targetCol = col + c;
+                        if(targetRow >= 0 && targetRow < gridSize && targetCol >= 0 && targetCol < gridSize) {
+                            let targetIndex = targetRow * gridSize + targetCol;
+                            if (gridState[targetIndex] === 1) clearSingleCell(targetIndex);
+                        }
+                    }
+                }
+                powerUps.bomb--; updatePowerUpUI('bomb'); clearPowerUpState();
+                setTimeout(checkGameOver, 300); 
+            }
+        });
+
+        // --- 🖱️ DRAG LOGIC ---
+        let activeShape = null;
+        let originalSlot = null;
+        let offsetX = 0, offsetY = 0;
+
+        function startDrag(e) {
+            e.preventDefault(); 
+            if (activePowerUp) clearPowerUpState();
+            
+            initAudio(); 
+            document.querySelector('.power-up-circles').classList.remove('hint-glow'); 
+
+            activeShape = e.currentTarget; originalSlot = activeShape.parentElement;
+            const shapeDef = JSON.parse(activeShape.dataset.shape);
+            const cellSize = getCellSize();
+            activeShape.style.gridTemplateColumns = `repeat(${shapeDef[0].length}, ${cellSize}px)`;
+            activeShape.style.gridTemplateRows = `repeat(${shapeDef.length}, ${cellSize}px)`;
+            const rect = activeShape.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            offsetX = clientX - rect.left; offsetY = clientY - rect.top;
+            activeShape.style.width = rect.width + 'px'; activeShape.style.height = rect.height + 'px';
+            document.body.appendChild(activeShape);
+            activeShape.style.position = 'fixed'; activeShape.style.zIndex = '1000'; activeShape.style.margin = '0';
+            moveShape(clientX, clientY);
+            document.addEventListener('mousemove', onDrag, {passive: false});
+            document.addEventListener('touchmove', onDrag, {passive: false});
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function onDrag(e) {
+            e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            moveShape(clientX, clientY);
+        }
+
+        function moveShape(x, y) {
+            if (!activeShape) return;
+            activeShape.style.left = `${x - offsetX}px`;
+            activeShape.style.top = `${y - offsetY}px`;
+        }
+
+        function endDrag(e) {
+            document.removeEventListener('mousemove', onDrag); document.removeEventListener('touchmove', onDrag);
+            document.removeEventListener('mouseup', endDrag); document.removeEventListener('touchend', endDrag);
+            if (!activeShape) return;
+            const shapeRect = activeShape.getBoundingClientRect(); const cellSize = getCellSize();
+            const targetX = shapeRect.left + (cellSize / 2); const targetY = shapeRect.top + (cellSize / 2);
+            activeShape.style.visibility = 'hidden'; const elementBelow = document.elementFromPoint(targetX, targetY);
+            activeShape.style.visibility = 'visible';
+            let droppedSuccessfully = false;
+            
+            if (elementBelow && elementBelow.classList.contains('grid-cell')) {
+                const dropIndex = parseInt(elementBelow.dataset.index);
+                const dropRow = Math.floor(dropIndex / gridSize); const dropCol = dropIndex % gridSize;
+                const shapeDef = JSON.parse(activeShape.dataset.shape); 
+                
+                if (canPlaceShapeAt(shapeDef, dropRow, dropCol)) {
+                    droppedSuccessfully = true; playSound('place'); 
+                    let blockUnitIndex = 0;
+                    const blockDOMNodes = activeShape.querySelectorAll('.block-unit');
+
+                    for (let r = 0; r < shapeDef.length; r++) {
+                        for (let c = 0; c < shapeDef[r].length; c++) {
+                            if (shapeDef[r][c] === 1) {
+                                const targetIndex = (dropRow + r) * gridSize + (dropCol + c);
+                                gridState[targetIndex] = 1; cells[targetIndex].style.backgroundColor = 'transparent';
+                                cells[targetIndex].style.backgroundImage = blockDOMNodes[blockUnitIndex].style.backgroundImage; 
+                                cells[targetIndex].style.boxShadow = '1px 1px 4px rgba(0,0,0,0.5)';
+                                blockUnitIndex++; 
+                            }
+                        }
+                    }
+                    let blocksInShape = shapeDef.flat().filter(val => val === 1).length; updateScore(blocksInShape * 10);
+                    activeShape.remove(); spawnShape(originalSlot.id);
+                    checkLines(); setTimeout(checkGameOver, 300); 
+                }
+            }
+            if (!droppedSuccessfully) {
+                playSound('error'); activeShape.style.position = 'static';
+                activeShape.style.width = 'auto'; activeShape.style.height = 'auto';
+                const shapeDef = JSON.parse(activeShape.dataset.shape); const trayCellSize = getCellSize() * 0.8;
+                activeShape.style.gridTemplateColumns = `repeat(${shapeDef[0].length}, ${trayCellSize}px)`;
+                activeShape.style.gridTemplateRows = `repeat(${shapeDef.length}, ${trayCellSize}px)`;
+                originalSlot.appendChild(activeShape);
+            }
+            activeShape = null;
+        }
+
+        function canPlaceShapeAt(shapeDef, startRow, startCol) {
+            for (let r = 0; r < shapeDef.length; r++) {
+                for (let c = 0; c < shapeDef[r].length; c++) {
+                    if (shapeDef[r][c] === 1) {
+                        const targetRow = startRow + r; const targetCol = startCol + c;
+                        const targetIndex = targetRow * gridSize + targetCol;
+                        if (targetRow >= gridSize || targetCol >= gridSize || gridState[targetIndex] === 1) return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function checkGameOver() {
+            let canMakeMove = false; const slots = ['slot-1', 'slot-2', 'slot-3'];
+            for (let slotId of slots) {
+                const slot = document.getElementById(slotId); if (slot.children.length === 0) continue;
+                const shapeDef = JSON.parse(slot.children[0].dataset.shape);
+                for (let r = 0; r < gridSize; r++) {
+                    for (let c = 0; c < gridSize; c++) {
+                        if (canPlaceShapeAt(shapeDef, r, c)) { canMakeMove = true; break; }
+                    }
+                    if (canMakeMove) break;
+                }
+                if (canMakeMove) break;
+            }
+            
+            const hasPowerUps = (powerUps.wand > 0 || powerUps.bomb > 0 || powerUps.refresh > 0);
+
+            if (!canMakeMove && !hasPowerUps) {
+                playSound('gameover'); document.getElementById('final-score-val').innerText = score;
+                document.getElementById('game-over-modal').style.display = 'flex';
+            } else if (!canMakeMove && hasPowerUps) {
+                document.querySelector('.power-up-circles').classList.add('hint-glow');
+            } else {
+                document.querySelector('.power-up-circles').classList.remove('hint-glow');
+            }
+        }
+
+        function updateScore(points) {
+            score += points;
+            
+            if (score > highScore) { 
+                highScore = score; 
+                localStorage.setItem('meadowHighScore', highScore); 
+                updateHighScoreDisplays(); 
+            }
+
+            let scoreEl = document.getElementById('score-value');
+            scoreEl.innerText = score;
+            
+            let container = document.querySelector('.current-score-container');
+            container.style.transform = 'scale(1.1)';
+            setTimeout(() => container.style.transform = 'scale(1)', 200);
+        }
+
+        function checkLines() {
+            let cellsToClear = new Set(); let linesCleared = 0;
+            for (let r = 0; r < gridSize; r++) {
+                let rowFull = true; for (let c = 0; c < gridSize; c++) { if (gridState[r * gridSize + c] === 0) rowFull = false; }
+                if (rowFull) { linesCleared++; for (let c = 0; c < gridSize; c++) cellsToClear.add(r * gridSize + c); }
+            }
+            for (let c = 0; c < gridSize; c++) {
+                let colFull = true; for (let r = 0; r < gridSize; r++) { if (gridState[r * gridSize + c] === 0) colFull = false; }
+                if (colFull) { linesCleared++; for (let r = 0; r < gridSize; r++) cellsToClear.add(r * gridSize + c); }
+            }
+            if (cellsToClear.size > 0) { playSound('clear'); cellsToClear.forEach(index => clearSingleCell(index)); updateScore(linesCleared * 100); }
+        }
+
+        function resetGameCore() {
+            gridState.fill(0);
+            cells.forEach(cell => { cell.style.backgroundImage = 'none'; cell.style.backgroundColor = '#DEB887'; cell.style.boxShadow = 'inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2)'; });
+            score = 0; document.getElementById('score-value').innerText = score;
+            powerUps = { wand: 3, bomb: 3, refresh: 3 };
+            ['wand', 'bomb', 'refresh'].forEach(type => { document.getElementById(`badge-${type}`).innerText = '3'; document.getElementById(`btn-${type}`).classList.remove('empty-power'); });
+            clearPowerUpState(); ['slot-1', 'slot-2', 'slot-3'].forEach(spawnShape);
+        }
+
+        function resetGame() { resetGameCore(); document.getElementById('game-over-modal').style.display = 'none'; playSound('clear'); }
+
+        // --- ⚙️ SETTINGS MENU LOGIC ---
+        function openSettings() { 
+            initAudio(); startBackgroundMusic(); 
+            document.getElementById('settings-modal').style.display = 'flex'; 
+        }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
+        function resetHighScore() { if(confirm("Are you sure you want to reset your High Score?")) { highScore = 0; localStorage.setItem('meadowHighScore', 0); updateHighScoreDisplays(); playSound('error'); } }
+    </script>
+</body>
+</html>        /* --- HOME SCREEN STYLES 🏡 --- */
         .home-content { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; height: 100%; }
         .game-title { font-size: clamp(40px, 10vw, 55px); font-weight: bold; color: #1a4d2e; text-align: center; line-height: 1.1; margin: 0; text-shadow: 2px 2px 0px #FFF8DC, -1px -1px 0px #FFF8DC, 0px 4px 10px rgba(0,0,0,0.5); }
         .play-btn { font-size: 32px; padding: 20px 60px; border-radius: 50px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(0,0,0,0.5); }
@@ -720,3 +1416,4 @@
     </script>
 </body>
 </html>
+
