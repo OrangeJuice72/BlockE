@@ -6,19 +6,21 @@
     <title>Peaceful Meadow Block Puzzle</title>
     <style>
         /* The Website Frame */
-        body { 
+        html, body { 
             margin: 0; padding: 0; 
+            width: 100%; height: 100%; 
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0;
             font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; 
             background-color: #A8E6CF; 
-            display: flex; justify-content: center; align-items: center; 
-            height: 100dvh; width: 100vw;
-            color: #3e2723; user-select: none; overflow: hidden; 
+            color: #3e2723; user-select: none; -webkit-user-select: none; overflow: hidden; 
             touch-action: none; -webkit-touch-callout: none;
         }
         
         /* The Main App Window 🖼️ */
         .app-window { 
-            width: 100vw; max-width: 500px; height: 100dvh; 
+            width: 100%; max-width: 500px; height: 100%; 
+            margin: 0 auto;
             background-image: url('Assets/bg.png'); 
             background-size: cover; background-position: center bottom; background-repeat: no-repeat;
             box-shadow: 0 0 30px rgba(0,0,0,0.5); 
@@ -39,11 +41,11 @@
         /* --- HOME SCREEN STYLES 🏡 --- */
         .home-content { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh; height: 100%; width: 100%; }
         .game-title { font-size: clamp(40px, 10vw, 55px); font-weight: bold; color: #1a4d2e; text-align: center; line-height: 1.1; margin: 0; text-shadow: 2px 2px 0px #FFF8DC, -1px -1px 0px #FFF8DC, 0px 4px 10px rgba(0,0,0,0.5); }
-        .play-btn { font-size: 32px; padding: 20px 60px; border-radius: 50px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(0,0,0,0.5); }
+        .play-btn { font-size: 32px; padding: 20px 60px; border-radius: 50px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(0,0,0,0.5); transition: transform 0.1s; }
         .play-btn:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0,0,0,0.4); }
         
         /* --- GAME SCREEN HEADER & SCORE CONTAINERS ✨🏆 --- */
-        .wooden-ui { background: #8B5A2B; border: 3px solid #5C3A21; border-radius: 12px; color: #FFF8DC; text-align: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 2px 2px 5px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.8); transition: all 0.2s; }
+        .wooden-ui { background: #8B5A2B; border: 3px solid #5C3A21; border-radius: 12px; color: #FFF8DC; text-align: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 2px 2px 5px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.8); transition: all 0.1s; }
         .home-high-score { font-size: 18px; padding: 15px 40px; border-radius: 20px; }
         .home-high-score span { font-size: 32px; font-weight: bold; display: block; margin-top: 5px; color: #FFDAC1; }
 
@@ -55,7 +57,7 @@
         .high-score-container { position: absolute; left: 0; width: 30%; max-width: 120px; aspect-ratio: 200/80; height: auto; background-image: url('Assets/high_score_container.png'); }
         #high-score-val { top: 60%; font-size: clamp(16px, 4vw, 22px); }
 
-        .current-score-container { position: relative; width: 45%; max-width: 220px; aspect-ratio: 300/120; height: auto; background-image: url('Assets/current_score_container.png'); transition: transform 0.2s; z-index: 5; }
+        .current-score-container { position: relative; width: 45%; max-width: 220px; aspect-ratio: 300/120; height: auto; background-image: url('Assets/current_score_container.png'); transition: transform 0.1s; z-index: 5; }
         #score-value { top: 60%; font-size: clamp(20px, 5.5vw, 30px); }
 
         .settings { position: absolute; right: 0; width: 15%; max-width: 50px; aspect-ratio: 1/1; height: auto; background-image: url('Assets/settings.png'); background-size: contain; background-position: center; background-repeat: no-repeat; cursor: pointer; transition: transform 0.1s; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4)); }
@@ -63,18 +65,22 @@
         
         /* --- GRID & SHAPES 🧩 --- */
         .grid-container { display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); gap: 2px; background: #5C3A21; padding: 4px; border-radius: 8px; width: 100%; max-width: 420px; aspect-ratio: 1/1; box-shadow: 0 5px 20px rgba(0,0,0,0.7); position: relative; }
-        .grid-cell { background-color: #DEB887; border-radius: 4px; box-shadow: inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2); transition: transform 0.1s; background-size: cover; background-position: center; background-repeat: no-repeat; aspect-ratio: 1/1; }
+        
+        /* Sped up cell transition from 0.1s to 0.05s */
+        .grid-cell { background-color: #DEB887; border-radius: 4px; box-shadow: inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2); transition: transform 0.05s; background-size: cover; background-position: center; background-repeat: no-repeat; aspect-ratio: 1/1; }
         
         .shape-container { display: grid; gap: 2px; cursor: grab; position: absolute; z-index: 100; }
         .block-unit { width: 100%; height: 100%; border-radius: 4px; background-color: #8cc63f; background-size: cover; background-position: center; background-repeat: no-repeat; box-shadow: 1px 1px 4px rgba(0,0,0,0.5); }
         .block-empty { width: 100%; height: 100%; visibility: hidden; pointer-events: none; }
 
-        /* --- ✨ COMBO ANIMATIONS ✨ --- */
+        /* --- ✨ FAST COMBO ANIMATIONS ✨ --- */
         .floating-text {
             position: absolute; top: 50%; left: 50%; text-align: center; font-family: inherit; font-weight: 900;
             font-size: clamp(24px, 6vw, 36px); color: #FFF8DC; -webkit-text-stroke: 2px #5C3A21; 
             filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.5)); pointer-events: none; z-index: 2000; line-height: 1.1;
-            animation: floatUpAndFade 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            /* Shaved down from 1.5s to 0.8s for snappiness, added will-change */
+            animation: floatUpAndFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            will-change: transform, opacity;
         }
 
         @keyframes floatUpAndFade {
@@ -85,7 +91,8 @@
             100% { opacity: 0; transform: translate(-50%, -70%) scale(0.8); }
         }
 
-        .board-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        /* Sped up from 0.4s to 0.25s */
+        .board-shake { animation: shake 0.25s cubic-bezier(.36,.07,.19,.97) both; will-change: transform; }
 
         @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }
@@ -108,13 +115,13 @@
         @keyframes pulse-glow { 0% { filter: drop-shadow(0 0 0px #FFD700); transform: scale(1); } 50% { filter: drop-shadow(0 0 15px #FFD700); transform: scale(1.05); } 100% { filter: drop-shadow(0 0 0px #FFD700); transform: scale(1); } }
         .hint-glow { animation: pulse-glow 1.5s ease-in-out infinite; }
 
-        .circle-btn { position: relative; width: 12vw; max-width: 45px; aspect-ratio: 1/1; height: auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: clamp(16px, 4vw, 20px); cursor: pointer; }
+        .circle-btn { position: relative; width: 12vw; max-width: 45px; aspect-ratio: 1/1; height: auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: clamp(16px, 4vw, 20px); cursor: pointer; transition: transform 0.1s; }
         .circle-btn:active { transform: scale(0.9); }
         .badge { position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; border: 2px solid #5C3A21; box-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
         .power-active { border-color: #FFD700 !important; box-shadow: 0 0 15px #FFD700, inset 0 0 10px rgba(0,0,0,0.5) !important; transform: scale(1.1); }
         .empty-power { opacity: 0.5; filter: grayscale(100%); cursor: not-allowed; }
 
-        .home-btn { width: 15vw; max-width: 50px; aspect-ratio: 1/1; height: auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: clamp(20px, 5vw, 24px); cursor: pointer; }
+        .home-btn { width: 15vw; max-width: 50px; aspect-ratio: 1/1; height: auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: clamp(20px, 5vw, 24px); cursor: pointer; transition: transform 0.1s; }
         .home-btn:active { transform: scale(0.9); }
 
         /* --- MODALS & CUSTOM SLIDER 🛑⚙️ --- */
@@ -254,7 +261,7 @@
             gain.connect(masterSfxGain);
 
             let duration = 0;
-            let pitchMod = 1 + (comboParam * 0.1);
+            let pitchMod = 1 + (comboParam * 0.1); 
 
             if (type === 'place') {
                 osc.type = 'sine'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
@@ -460,7 +467,7 @@
             if (activePowerUp) clearPowerUpState(); 
             playSound('clear'); ['slot-1', 'slot-2', 'slot-3'].forEach(spawnShape);
             powerUps.refresh--; updatePowerUpUI('refresh');
-            setTimeout(checkGameOver, 300); 
+            setTimeout(checkGameOver, 150); 
         }
 
         function clearPowerUpState() {
@@ -476,15 +483,16 @@
             if(powerUps[type] === 0) document.getElementById(`btn-${type}`).classList.add('empty-power');
         }
 
+        // FAST cell clear logic!
         function clearSingleCell(index) {
             gridState[index] = 0;
-            cells[index].style.transform = 'scale(0.8)';
+            cells[index].style.transform = 'scale(0)';
             setTimeout(() => {
                 cells[index].style.backgroundImage = 'none';
                 cells[index].style.backgroundColor = '#DEB887';
                 cells[index].style.boxShadow = 'inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2)';
                 cells[index].style.transform = 'scale(1)';
-            }, 150);
+            }, 75); // Slashed timeout to 75ms for instant arcade-feel!
         }
 
         gridContainer.addEventListener('click', (e) => {
@@ -498,7 +506,7 @@
                 if (gridState[index] === 0) { playSound('error'); return; }
                 playSound('magic'); clearSingleCell(index);
                 powerUps.wand--; updatePowerUpUI('wand'); clearPowerUpState();
-                setTimeout(checkGameOver, 300); 
+                setTimeout(checkGameOver, 150); 
             } else if (activePowerUp === 'bomb') {
                 playSound('explosion');
                 for(let r = -1; r <= 1; r++) {
@@ -511,7 +519,7 @@
                     }
                 }
                 powerUps.bomb--; updatePowerUpUI('bomb'); clearPowerUpState();
-                setTimeout(checkGameOver, 300); 
+                setTimeout(checkGameOver, 150); 
             }
         });
 
@@ -521,11 +529,12 @@
             el.className = 'floating-text';
             el.innerHTML = msg;
             gridContainer.appendChild(el);
-            setTimeout(() => el.remove(), 1500); 
+            setTimeout(() => el.remove(), 800); // Fast cleanup!
         }
 
-        // --- 🚀 GPU-ACCELERATED DRAG LOGIC 🚀 ---
+        // --- 🚀 BUTTERY 60FPS GPU DRAG LOGIC 🚀 ---
         let activeShape = null; let originalSlot = null; let offsetX = 0, offsetY = 0;
+        let dragRAF = null; // Animation Frame Tracker
 
         function startDrag(e) {
             e.preventDefault(); 
@@ -544,15 +553,15 @@
             activeShape.style.width = rect.width + 'px'; activeShape.style.height = rect.height + 'px';
             document.body.appendChild(activeShape);
             
-            // Setting starting bounds strictly to 0,0 and using transforms for everything!
             activeShape.style.position = 'fixed'; 
             activeShape.style.left = '0px'; 
             activeShape.style.top = '0px';
             activeShape.style.zIndex = '1000'; 
             activeShape.style.margin = '0';
-            activeShape.style.willChange = 'transform'; // Hardware GPU acceleration on! 🏎️
+            activeShape.style.willChange = 'transform'; 
             
             moveShape(clientX, clientY);
+            
             document.addEventListener('mousemove', onDrag, {passive: false});
             document.addEventListener('touchmove', onDrag, {passive: false});
             document.addEventListener('mouseup', endDrag);
@@ -563,21 +572,24 @@
             e.preventDefault();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            moveShape(clientX, clientY);
+            
+            // Syncs the move visually with the phone's hardware refresh rate!
+            if (dragRAF) cancelAnimationFrame(dragRAF);
+            dragRAF = requestAnimationFrame(() => moveShape(clientX, clientY));
         }
 
         function moveShape(x, y) {
             if (!activeShape) return;
-            // The magic formula for lag-free 60FPS dragging! 🪄
             activeShape.style.transform = `translate3d(${x - offsetX}px, ${y - offsetY}px, 0)`;
         }
 
         function endDrag(e) {
             document.removeEventListener('mousemove', onDrag); document.removeEventListener('touchmove', onDrag);
             document.removeEventListener('mouseup', endDrag); document.removeEventListener('touchend', endDrag);
+            if (dragRAF) cancelAnimationFrame(dragRAF);
+
             if (!activeShape) return;
             
-            // Clean up the hardware acceleration hint to free memory
             activeShape.style.willChange = 'auto';
 
             const shapeRect = activeShape.getBoundingClientRect(); const cellSize = getCellSize();
@@ -611,13 +623,14 @@
                     updateScore(blocksInShape * 10);
                     activeShape.remove(); spawnShape(originalSlot.id);
                     
-                    checkLines(); setTimeout(checkGameOver, 300); 
+                    checkLines(); 
+                    setTimeout(checkGameOver, 150); // Sped up the check!
                 }
             }
             if (!droppedSuccessfully) {
                 playSound('error'); 
                 activeShape.style.position = 'static';
-                activeShape.style.transform = 'none'; // Wipe the transform!
+                activeShape.style.transform = 'none'; 
                 activeShape.style.width = 'auto'; activeShape.style.height = 'auto';
                 const shapeDef = JSON.parse(activeShape.dataset.shape); const trayCellSize = getCellSize() * 0.8;
                 activeShape.style.gridTemplateColumns = `repeat(${shapeDef[0].length}, ${trayCellSize}px)`;
@@ -671,7 +684,7 @@
             if (score > highScore) { highScore = score; localStorage.setItem('meadowHighScore', highScore); updateHighScoreDisplays(); }
             let scoreEl = document.getElementById('score-value'); scoreEl.innerText = score;
             let container = document.querySelector('.current-score-container');
-            container.style.transform = 'scale(1.1)'; setTimeout(() => container.style.transform = 'scale(1)', 200);
+            container.style.transform = 'scale(1.1)'; setTimeout(() => container.style.transform = 'scale(1)', 100);
         }
 
         // --- ✨ THE COMBO ENGINE ✨ ---
@@ -714,7 +727,7 @@
 
                 if (linesCleared >= 3 || currentCombo >= 3) {
                     gridContainer.classList.add('board-shake');
-                    setTimeout(() => gridContainer.classList.remove('board-shake'), 400);
+                    setTimeout(() => gridContainer.classList.remove('board-shake'), 250);
                 }
 
             } else {
