@@ -61,7 +61,7 @@
         .settings { position: absolute; right: 0; width: 15%; max-width: 50px; aspect-ratio: 1/1; height: auto; background-image: url('Assets/settings.png'); background-size: contain; background-position: center; background-repeat: no-repeat; cursor: pointer; transition: transform 0.1s; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4)); }
         .settings:active { transform: scale(0.9); }
         
-        /* --- GRID, SHAPES & ANIMATIONS 🧩 --- */
+        /* --- GRID & SHAPES 🧩 --- */
         .grid-container { display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); gap: 2px; background: #5C3A21; padding: 4px; border-radius: 8px; width: 100%; max-width: 420px; aspect-ratio: 1/1; box-shadow: 0 5px 20px rgba(0,0,0,0.7); position: relative; }
         .grid-cell { background-color: #DEB887; border-radius: 4px; box-shadow: inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2); transition: transform 0.1s; background-size: cover; background-position: center; background-repeat: no-repeat; aspect-ratio: 1/1; }
         
@@ -69,20 +69,11 @@
         .block-unit { width: 100%; height: 100%; border-radius: 4px; background-color: #8cc63f; background-size: cover; background-position: center; background-repeat: no-repeat; box-shadow: 1px 1px 4px rgba(0,0,0,0.5); }
         .block-empty { width: 100%; height: 100%; visibility: hidden; pointer-events: none; }
 
-        /* ✨ NEW: COMBO ANIMATIONS ✨ */
+        /* --- ✨ COMBO ANIMATIONS ✨ --- */
         .floating-text {
-            position: absolute;
-            top: 50%; left: 50%;
-            text-align: center;
-            font-family: inherit;
-            font-weight: 900;
-            font-size: clamp(24px, 6vw, 36px);
-            color: #FFF8DC;
-            -webkit-text-stroke: 2px #5C3A21; /* Thick brown outline for contrast! */
-            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.5));
-            pointer-events: none; /* Make sure it doesn't block dragging! */
-            z-index: 2000;
-            line-height: 1.1;
+            position: absolute; top: 50%; left: 50%; text-align: center; font-family: inherit; font-weight: 900;
+            font-size: clamp(24px, 6vw, 36px); color: #FFF8DC; -webkit-text-stroke: 2px #5C3A21; 
+            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.5)); pointer-events: none; z-index: 2000; line-height: 1.1;
             animation: floatUpAndFade 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
@@ -94,9 +85,7 @@
             100% { opacity: 0; transform: translate(-50%, -70%) scale(0.8); }
         }
 
-        .board-shake {
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-        }
+        .board-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
 
         @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }
@@ -149,22 +138,23 @@
 </head>
 <body>
 
-    <audio id="bg-music" src="Assets/INNOCENT.wav" loop preload="auto"></audio>
-
     <div class="app-window">
         
         <div id="home-view" class="view active">
             <div class="home-content">
                 <h1 class="game-title">Peaceful<br>Meadow</h1>
+                
                 <div class="wooden-ui home-high-score">
                     HIGH SCORE<br><span id="home-screen-high-score">0</span>
                 </div>
+
                 <button class="wooden-ui play-btn" onclick="startGame()">PLAY ▶️</button>
                 <button class="modal-btn" onclick="openSettings()" style="width: 200px;">⚙️ Settings</button>
             </div>
         </div>
 
         <div id="game-view" class="view">
+            
             <div class="header">
                 <div class="score-display high-score-container">
                     <p class="score-val" id="high-score-val">0</p>
@@ -198,6 +188,7 @@
                 <div class="wooden-ui home-btn" onclick="goHome()">🏠</div>
             </div>
         </div>
+
     </div>
 
     <div class="modal-overlay" id="game-over-modal">
@@ -212,14 +203,12 @@
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content">
             <div class="modal-title">SETTINGS</div>
-            <div class="setting-group">
-                <label for="music-volume"><span>Music Volume</span> 🎶</label>
-                <input type="range" id="music-volume" min="0" max="1" step="0.05" onchange="updateMusicVolume(this.value)" oninput="updateMusicVolume(this.value)">
-            </div>
+            
             <div class="setting-group">
                 <label for="sfx-volume"><span>Sound Effects</span> 🔊</label>
                 <input type="range" id="sfx-volume" min="0" max="1" step="0.05" onchange="updateSfxVolume(this.value)" oninput="updateSfxVolume(this.value)">
             </div>
+
             <button class="modal-btn btn-danger" onclick="resetHighScore()" style="margin-top: 10px;">Reset High Score 🗑️</button>
             <button class="modal-btn" onclick="closeSettings()">Close ❌</button>
         </div>
@@ -227,37 +216,12 @@
 
     <script>
         // --- 💾 MEMORY BANK ---
-        let rawMusic = localStorage.getItem('meadowMusicVol');
-        let musicVolume = rawMusic !== null ? parseFloat(rawMusic) : 0.2;
-
         let rawSfx = localStorage.getItem('meadowSfxVol');
         let sfxVolume = rawSfx !== null ? parseFloat(rawSfx) : 1.0;
 
-        const bgMusicEl = document.getElementById('bg-music');
-
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('music-volume').value = musicVolume;
             document.getElementById('sfx-volume').value = sfxVolume;
-            bgMusicEl.volume = musicVolume; 
         });
-
-        // --- 🎵 MUSIC LOGIC ---
-        let musicStarted = false;
-
-        function startBackgroundMusic() {
-            if (!musicStarted && musicVolume > 0) {
-                bgMusicEl.volume = musicVolume;
-                bgMusicEl.play().catch(e => console.log("Waiting for interaction..."));
-                musicStarted = true;
-            }
-        }
-
-        function updateMusicVolume(val) {
-            musicVolume = parseFloat(val) || 0.2; 
-            bgMusicEl.volume = musicVolume; 
-            localStorage.setItem('meadowMusicVol', musicVolume); 
-            if (musicVolume > 0 && !musicStarted) startBackgroundMusic();
-        }
 
         function updateSfxVolume(val) {
             sfxVolume = parseFloat(val) || 1.0;
@@ -280,7 +244,6 @@
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        // ✨ UPDATE: Added comboParam to dynamically shift pitch up!
         function playSound(type, comboParam = 0) {
             if (sfxVolume <= 0 || !audioCtx) return; 
             const now = audioCtx.currentTime;
@@ -291,7 +254,7 @@
             gain.connect(masterSfxGain);
 
             let duration = 0;
-            let pitchMod = 1 + (comboParam * 0.1); // Each combo level increases pitch by 10%
+            let pitchMod = 1 + (comboParam * 0.1);
 
             if (type === 'place') {
                 osc.type = 'sine'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
@@ -304,7 +267,7 @@
             } else if (type === 'clear') {
                 [523.25, 659.25, 783.99].forEach((freq, i) => { 
                     const subOsc = audioCtx.createOscillator(); const subGain = audioCtx.createGain();
-                    subOsc.type = 'sine'; subOsc.frequency.value = freq * pitchMod; // Pitch goes up with combos!
+                    subOsc.type = 'sine'; subOsc.frequency.value = freq * pitchMod; 
                     subGain.gain.setValueAtTime(0, now); subGain.gain.linearRampToValueAtTime(0.15, now + 0.05 + (i * 0.05));
                     subGain.gain.linearRampToValueAtTime(0, now + 0.8 + (i * 0.2));
                     subOsc.connect(subGain); subGain.connect(masterSfxGain); 
@@ -345,7 +308,7 @@
         let gameInitialized = false;
 
         function startGame() {
-            initAudio(); startBackgroundMusic(); 
+            initAudio(); 
             document.getElementById('home-view').classList.remove('active');
             document.getElementById('game-view').classList.add('active');
             
@@ -380,8 +343,6 @@
         let gridState = new Array(gridSize * gridSize).fill(0); 
         let score = 0;
         let highScore = localStorage.getItem('meadowHighScore') || 0;
-        
-        // ✨ NEW: Track the ongoing combo multiplier!
         let currentCombo = 0; 
 
         function updateHighScoreDisplays() {
@@ -560,10 +521,10 @@
             el.className = 'floating-text';
             el.innerHTML = msg;
             gridContainer.appendChild(el);
-            setTimeout(() => el.remove(), 1500); // Cleans up after animation
+            setTimeout(() => el.remove(), 1500); 
         }
 
-        // --- 🖱️ DRAG LOGIC ---
+        // --- 🚀 GPU-ACCELERATED DRAG LOGIC 🚀 ---
         let activeShape = null; let originalSlot = null; let offsetX = 0, offsetY = 0;
 
         function startDrag(e) {
@@ -578,10 +539,19 @@
             const rect = activeShape.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
             offsetX = clientX - rect.left; offsetY = clientY - rect.top;
             activeShape.style.width = rect.width + 'px'; activeShape.style.height = rect.height + 'px';
             document.body.appendChild(activeShape);
-            activeShape.style.position = 'fixed'; activeShape.style.zIndex = '1000'; activeShape.style.margin = '0';
+            
+            // Setting starting bounds strictly to 0,0 and using transforms for everything!
+            activeShape.style.position = 'fixed'; 
+            activeShape.style.left = '0px'; 
+            activeShape.style.top = '0px';
+            activeShape.style.zIndex = '1000'; 
+            activeShape.style.margin = '0';
+            activeShape.style.willChange = 'transform'; // Hardware GPU acceleration on! 🏎️
+            
             moveShape(clientX, clientY);
             document.addEventListener('mousemove', onDrag, {passive: false});
             document.addEventListener('touchmove', onDrag, {passive: false});
@@ -598,13 +568,18 @@
 
         function moveShape(x, y) {
             if (!activeShape) return;
-            activeShape.style.left = `${x - offsetX}px`; activeShape.style.top = `${y - offsetY}px`;
+            // The magic formula for lag-free 60FPS dragging! 🪄
+            activeShape.style.transform = `translate3d(${x - offsetX}px, ${y - offsetY}px, 0)`;
         }
 
         function endDrag(e) {
             document.removeEventListener('mousemove', onDrag); document.removeEventListener('touchmove', onDrag);
             document.removeEventListener('mouseup', endDrag); document.removeEventListener('touchend', endDrag);
             if (!activeShape) return;
+            
+            // Clean up the hardware acceleration hint to free memory
+            activeShape.style.willChange = 'auto';
+
             const shapeRect = activeShape.getBoundingClientRect(); const cellSize = getCellSize();
             const targetX = shapeRect.left + (cellSize / 2); const targetY = shapeRect.top + (cellSize / 2);
             activeShape.style.visibility = 'hidden'; const elementBelow = document.elementFromPoint(targetX, targetY);
@@ -636,13 +611,13 @@
                     updateScore(blocksInShape * 10);
                     activeShape.remove(); spawnShape(originalSlot.id);
                     
-                    // Trigger line check which handles combos!
-                    checkLines(); 
-                    setTimeout(checkGameOver, 300); 
+                    checkLines(); setTimeout(checkGameOver, 300); 
                 }
             }
             if (!droppedSuccessfully) {
-                playSound('error'); activeShape.style.position = 'static';
+                playSound('error'); 
+                activeShape.style.position = 'static';
+                activeShape.style.transform = 'none'; // Wipe the transform!
                 activeShape.style.width = 'auto'; activeShape.style.height = 'auto';
                 const shapeDef = JSON.parse(activeShape.dataset.shape); const trayCellSize = getCellSize() * 0.8;
                 activeShape.style.gridTemplateColumns = `repeat(${shapeDef[0].length}, ${trayCellSize}px)`;
@@ -713,23 +688,18 @@
             }
             
             if (cellsToClear.size > 0) { 
-                currentCombo++; // Increase the streak!
-                
-                // Pass combo modifier to the sound engine to raise pitch!
+                currentCombo++; 
                 playSound('clear', currentCombo); 
                 cellsToClear.forEach(index => clearSingleCell(index)); 
                 
-                // Calculate big points!
                 let basePoints = linesCleared * 100;
                 if (linesCleared === 2) basePoints = 300;
                 if (linesCleared === 3) basePoints = 600;
                 if (linesCleared >= 4) basePoints = 1000;
                 
-                // Extra bonus for consecutive combos
                 let comboBonus = (currentCombo > 1) ? (currentCombo * 50) : 0;
                 updateScore(basePoints + comboBonus); 
 
-                // --- TRIGGER ANIMATIONS! ---
                 let animText = "";
                 if (linesCleared > 1) {
                     const multiText = ["", "", "DOUBLE!", "TRIPLE!", "MEGA!", "INCREDIBLE!"];
@@ -742,20 +712,18 @@
 
                 if (animText !== "") showFloatingText(animText);
 
-                // Big impact board shake!
                 if (linesCleared >= 3 || currentCombo >= 3) {
                     gridContainer.classList.add('board-shake');
                     setTimeout(() => gridContainer.classList.remove('board-shake'), 400);
                 }
 
             } else {
-                // They placed a block but didn't clear a line, reset the streak! 🛑
                 currentCombo = 0;
             }
         }
 
         function resetGameCore() {
-            gridState.fill(0); currentCombo = 0; // Reset combos!
+            gridState.fill(0); currentCombo = 0; 
             cells.forEach(cell => { cell.style.backgroundImage = 'none'; cell.style.backgroundColor = '#DEB887'; cell.style.boxShadow = 'inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2)'; });
             score = 0; document.getElementById('score-value').innerText = score;
             powerUps = { wand: 3, bomb: 3, refresh: 3 };
@@ -766,7 +734,7 @@
         function resetGame() { resetGameCore(); document.getElementById('game-over-modal').style.display = 'none'; playSound('clear'); }
 
         // --- ⚙️ SETTINGS MENU LOGIC ---
-        function openSettings() { initAudio(); startBackgroundMusic(); document.getElementById('settings-modal').style.display = 'flex'; }
+        function openSettings() { initAudio(); document.getElementById('settings-modal').style.display = 'flex'; }
         function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
         function resetHighScore() { if(confirm("Are you sure you want to reset your High Score?")) { highScore = 0; localStorage.setItem('meadowHighScore', 0); updateHighScoreDisplays(); playSound('error'); } }
     </script>
