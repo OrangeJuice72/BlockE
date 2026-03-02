@@ -20,22 +20,24 @@
         .app-window { 
             width: 100vw; max-width: 500px; height: 100dvh; 
             background-image: url('Assets/bg.png'); 
-            background-size: cover; background-position: center; background-repeat: no-repeat;
+            background-size: cover; background-position: center bottom; background-repeat: no-repeat;
             box-shadow: 0 0 30px rgba(0,0,0,0.5); 
             position: relative;
+            display: flex; flex-direction: column;
         }
 
         /* Screens/Views */
         .view {
             width: 100%; height: 100%;
-            padding-top: env(safe-area-inset-top, 20px); padding-bottom: env(safe-area-inset-bottom, 20px);
-            padding-left: 5vw; padding-right: 5vw; box-sizing: border-box;
-            display: none; flex-direction: column; justify-content: space-evenly; 
+            padding: calc(env(safe-area-inset-top, 20px) + 10px) 5vw calc(env(safe-area-inset-bottom, 20px) + 10px) 5vw;
+            box-sizing: border-box;
+            display: none; flex-direction: column; align-items: center; justify-content: center; 
+            gap: 2vh; 
         }
         .view.active { display: flex; }
 
         /* --- HOME SCREEN STYLES 🏡 --- */
-        .home-content { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; height: 100%; }
+        .home-content { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh; height: 100%; width: 100%; }
         .game-title { font-size: clamp(40px, 10vw, 55px); font-weight: bold; color: #1a4d2e; text-align: center; line-height: 1.1; margin: 0; text-shadow: 2px 2px 0px #FFF8DC, -1px -1px 0px #FFF8DC, 0px 4px 10px rgba(0,0,0,0.5); }
         .play-btn { font-size: 32px; padding: 20px 60px; border-radius: 50px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(0,0,0,0.5); }
         .play-btn:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0,0,0,0.4); }
@@ -45,40 +47,72 @@
         .home-high-score { font-size: 18px; padding: 15px 40px; border-radius: 20px; }
         .home-high-score span { font-size: 32px; font-weight: bold; display: block; margin-top: 5px; color: #FFDAC1; }
 
-        /* Header logic rebuilt for perfect absolute centering! */
         .header { display: flex; flex-direction: row; justify-content: center; align-items: center; width: 100%; max-width: 450px; position: relative; height: 12vh; min-height: 80px; margin-bottom: 2vh; }
         
-        .score-display { background-size: contain; background-position: center; background-repeat: no-repeat; }
-        .score-val { position: absolute; left: 50%; width: 85%; white-space: nowrap; overflow: hidden; text-align: center; font-weight: bold; color: #DEB887; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); margin: 0; padding: 0; }
+        .score-display { background-size: contain; background-position: center; background-repeat: no-repeat; position: relative; }
+        .score-val { position: absolute; left: 50%; width: 85%; white-space: nowrap; overflow: hidden; text-align: center; font-weight: bold; color: #DEB887; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); margin: 0; padding: 0; transform: translate(-50%, -50%); }
 
-        /* Pinned totally to the left edge */
         .high-score-container { position: absolute; left: 0; width: 30%; max-width: 120px; aspect-ratio: 200/80; height: auto; background-image: url('Assets/high_score_container.png'); }
-        #high-score-val { top: 58%; transform: translate(-50%, -50%); font-size: clamp(14px, 4vw, 22px); }
+        #high-score-val { top: 60%; font-size: clamp(16px, 4vw, 22px); }
 
-        /* Owns the true center of the screen */
         .current-score-container { position: relative; width: 45%; max-width: 220px; aspect-ratio: 300/120; height: auto; background-image: url('Assets/current_score_container.png'); transition: transform 0.2s; z-index: 5; }
-        #score-value { top: 58%; transform: translate(-50%, -50%); font-size: clamp(20px, 5.5vw, 32px); }
+        #score-value { top: 60%; font-size: clamp(20px, 5.5vw, 30px); }
 
-        /* Pinned to the right edge and sized up significantly! */
-        .settings { position: absolute; right: 0; width: 22%; max-width: 80px; aspect-ratio: 1/1; height: auto; background-image: url('Assets/settings.png'); background-size: contain; background-position: center; background-repeat: no-repeat; cursor: pointer; transition: transform 0.1s; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4)); }
+        .settings { position: absolute; right: 0; width: 15%; max-width: 50px; aspect-ratio: 1/1; height: auto; background-image: url('Assets/settings.png'); background-size: contain; background-position: center; background-repeat: no-repeat; cursor: pointer; transition: transform 0.1s; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4)); }
         .settings:active { transform: scale(0.9); }
         
-        /* --- GRID & SHAPES 🧩 --- */
-        .grid-container { display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); gap: 2px; background: #5C3A21; padding: 4px; border-radius: 8px; width: 100%; aspect-ratio: 1/1; box-shadow: 0 5px 20px rgba(0,0,0,0.7); position: relative; }
-        .grid-cell { background-color: #DEB887; border-radius: 4px; box-shadow: inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2); transition: transform 0.1s; background-size: cover; background-position: center; background-repeat: no-repeat; }
+        /* --- GRID, SHAPES & ANIMATIONS 🧩 --- */
+        .grid-container { display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); gap: 2px; background: #5C3A21; padding: 4px; border-radius: 8px; width: 100%; max-width: 420px; aspect-ratio: 1/1; box-shadow: 0 5px 20px rgba(0,0,0,0.7); position: relative; }
+        .grid-cell { background-color: #DEB887; border-radius: 4px; box-shadow: inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2); transition: transform 0.1s; background-size: cover; background-position: center; background-repeat: no-repeat; aspect-ratio: 1/1; }
         
         .shape-container { display: grid; gap: 2px; cursor: grab; position: absolute; z-index: 100; }
         .block-unit { width: 100%; height: 100%; border-radius: 4px; background-color: #8cc63f; background-size: cover; background-position: center; background-repeat: no-repeat; box-shadow: 1px 1px 4px rgba(0,0,0,0.5); }
         .block-empty { width: 100%; height: 100%; visibility: hidden; pointer-events: none; }
 
-        .next-up-wrapper { text-align: center; width: 100%; height: 18%; display: flex; flex-direction: column; justify-content: center; }
+        /* ✨ NEW: COMBO ANIMATIONS ✨ */
+        .floating-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            text-align: center;
+            font-family: inherit;
+            font-weight: 900;
+            font-size: clamp(24px, 6vw, 36px);
+            color: #FFF8DC;
+            -webkit-text-stroke: 2px #5C3A21; /* Thick brown outline for contrast! */
+            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.5));
+            pointer-events: none; /* Make sure it doesn't block dragging! */
+            z-index: 2000;
+            line-height: 1.1;
+            animation: floatUpAndFade 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        @keyframes floatUpAndFade {
+            0% { opacity: 0; transform: translate(-50%, 0) scale(0.5) rotate(-5deg); }
+            15% { opacity: 1; transform: translate(-50%, -20%) scale(1.2) rotate(3deg); }
+            30% { opacity: 1; transform: translate(-50%, -30%) scale(1) rotate(0deg); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -70%) scale(0.8); }
+        }
+
+        .board-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .next-up-wrapper { text-align: center; width: 100%; max-width: 420px; display: flex; flex-direction: column; justify-content: center; margin-top: 1vh; }
         .next-up-label { font-weight: bold; letter-spacing: 2px; margin-bottom: 5px; color: #1a4d2e; text-shadow: 1px 1px 3px #ffffff, -1px -1px 3px #ffffff; font-size: clamp(12px, 3vw, 16px); }
-        .next-up-slots { display: flex; justify-content: space-between; gap: 10px; height: 100%; }
+        .next-up-slots { display: flex; justify-content: space-between; gap: 10px; height: 10vh; min-height: 70px; max-height: 90px; }
         .slot { flex: 1; height: 100%; background: rgba(139, 90, 43, 0.7); border: 2px dashed #5C3A21; border-radius: 10px; display: flex; justify-content: center; align-items: center; position: relative; }
         
         /* --- FOOTER & POWER UPS 💣 --- */
-        .footer { display: flex; justify-content: space-between; align-items: center; width: 100%; height: 10%; }
-        .power-ups { display: flex; flex-direction: column; justify-content: center; gap: 5px; height: 100%; }
+        .footer { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 420px; margin-top: 1vh; }
+        .power-ups { display: flex; flex-direction: column; justify-content: center; gap: 5px; }
         .power-ups-label { font-size: 10px; font-weight: bold; color: #1a4d2e; text-shadow: 1px 1px 3px #ffffff, -1px -1px 3px #ffffff; }
         .power-up-circles { display: flex; gap: 10px; border-radius: 50px; transition: all 0.3s; }
         
@@ -91,7 +125,7 @@
         .power-active { border-color: #FFD700 !important; box-shadow: 0 0 15px #FFD700, inset 0 0 10px rgba(0,0,0,0.5) !important; transform: scale(1.1); }
         .empty-power { opacity: 0.5; filter: grayscale(100%); cursor: not-allowed; }
 
-        .home-btn { width: 15vw; max-width: 55px; aspect-ratio: 1/1; height: auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: clamp(20px, 5vw, 24px); cursor: pointer; }
+        .home-btn { width: 15vw; max-width: 50px; aspect-ratio: 1/1; height: auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: clamp(20px, 5vw, 24px); cursor: pointer; }
         .home-btn:active { transform: scale(0.9); }
 
         /* --- MODALS & CUSTOM SLIDER 🛑⚙️ --- */
@@ -115,25 +149,22 @@
 </head>
 <body>
 
-    <audio id="bg-music" src="Assets/INNOCENT.wav" loop preload="auto" playsinline></audio>></audio>
+    <audio id="bg-music" src="Assets/INNOCENT.wav" loop preload="auto"></audio>
 
     <div class="app-window">
         
         <div id="home-view" class="view active">
             <div class="home-content">
                 <h1 class="game-title">Peaceful<br>Meadow</h1>
-                
                 <div class="wooden-ui home-high-score">
                     HIGH SCORE<br><span id="home-screen-high-score">0</span>
                 </div>
-
                 <button class="wooden-ui play-btn" onclick="startGame()">PLAY ▶️</button>
                 <button class="modal-btn" onclick="openSettings()" style="width: 200px;">⚙️ Settings</button>
             </div>
         </div>
 
         <div id="game-view" class="view">
-            
             <div class="header">
                 <div class="score-display high-score-container">
                     <p class="score-val" id="high-score-val">0</p>
@@ -167,7 +198,6 @@
                 <div class="wooden-ui home-btn" onclick="goHome()">🏠</div>
             </div>
         </div>
-
     </div>
 
     <div class="modal-overlay" id="game-over-modal">
@@ -182,39 +212,28 @@
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content">
             <div class="modal-title">SETTINGS</div>
-            
             <div class="setting-group">
                 <label for="music-volume"><span>Music Volume</span> 🎶</label>
                 <input type="range" id="music-volume" min="0" max="1" step="0.05" onchange="updateMusicVolume(this.value)" oninput="updateMusicVolume(this.value)">
             </div>
-
             <div class="setting-group">
                 <label for="sfx-volume"><span>Sound Effects</span> 🔊</label>
                 <input type="range" id="sfx-volume" min="0" max="1" step="0.05" onchange="updateSfxVolume(this.value)" oninput="updateSfxVolume(this.value)">
             </div>
-
             <button class="modal-btn btn-danger" onclick="resetHighScore()" style="margin-top: 10px;">Reset High Score 🗑️</button>
             <button class="modal-btn" onclick="closeSettings()">Close ❌</button>
         </div>
     </div>
 
     <script>
-        // --- 💾 IRON-CLAD MEMORY BANK ---
-        // Grab saved music volume, or default to 0.1 (10%)!
+        // --- 💾 MEMORY BANK ---
         let rawMusic = localStorage.getItem('meadowMusicVol');
-        let parsedMusic = parseFloat(rawMusic);
-        let musicVolume = !isNaN(parsedMusic) ? parsedMusic : 0.1;
+        let musicVolume = rawMusic !== null ? parseFloat(rawMusic) : 0.2;
 
         let rawSfx = localStorage.getItem('meadowSfxVol');
-        let parsedSfx = parseFloat(rawSfx);
-        let sfxVolume = !isNaN(parsedSfx) ? parsedSfx : 0.2;
+        let sfxVolume = rawSfx !== null ? parseFloat(rawSfx) : 1.0;
 
         const bgMusicEl = document.getElementById('bg-music');
-["play", "playing", "canplay", "loadedmetadata"].forEach(evt => {
-  bgMusicEl.addEventListener(evt, () => {
-    bgMusicEl.volume = musicVolume;
-  });
-});
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('music-volume').value = musicVolume;
@@ -225,39 +244,28 @@
         // --- 🎵 MUSIC LOGIC ---
         let musicStarted = false;
 
-function startBackgroundMusic() {
-  if (musicStarted || musicVolume <= 0) return;
+        function startBackgroundMusic() {
+            if (!musicStarted && musicVolume > 0) {
+                bgMusicEl.volume = musicVolume;
+                bgMusicEl.play().catch(e => console.log("Waiting for interaction..."));
+                musicStarted = true;
+            }
+        }
 
-  bgMusicEl.volume = musicVolume;
-
-  bgMusicEl.play().then(() => {
-    musicStarted = true;
-    bgMusicEl.volume = musicVolume; // re-assert after playback starts
-  }).catch(() => {
-    musicStarted = false; // IMPORTANT: don’t lie to yourself 😈
-    console.log("iOS Safari blocked autoplay, waiting for gesture…");
-  });
-}
         function updateMusicVolume(val) {
-            let parsed = parseFloat(val);
-            // Default to 0.1 if something weird happens with parsing!
-            musicVolume = !isNaN(parsed) ? parsed : 0.1; 
-            
+            musicVolume = parseFloat(val) || 0.2; 
             bgMusicEl.volume = musicVolume; 
             localStorage.setItem('meadowMusicVol', musicVolume); 
-            
             if (musicVolume > 0 && !musicStarted) startBackgroundMusic();
         }
 
         function updateSfxVolume(val) {
-            let parsed = parseFloat(val);
-            sfxVolume = !isNaN(parsed) ? parsed : 0.2;
-            
+            sfxVolume = parseFloat(val) || 1.0;
             if (masterSfxGain) masterSfxGain.gain.value = sfxVolume;
             localStorage.setItem('meadowSfxVol', sfxVolume);
         }
 
-        // --- 🌿 PEACEFUL SFX SYNTHESIZER ---
+        // --- 🌿 SFX SYNTHESIZER ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
         let masterSfxGain;
@@ -272,10 +280,10 @@ function startBackgroundMusic() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        function playSound(type) {
+        // ✨ UPDATE: Added comboParam to dynamically shift pitch up!
+        function playSound(type, comboParam = 0) {
             if (sfxVolume <= 0 || !audioCtx) return; 
             const now = audioCtx.currentTime;
-
             const osc = audioCtx.createOscillator(); 
             const gain = audioCtx.createGain();
             
@@ -283,6 +291,7 @@ function startBackgroundMusic() {
             gain.connect(masterSfxGain);
 
             let duration = 0;
+            let pitchMod = 1 + (comboParam * 0.1); // Each combo level increases pitch by 10%
 
             if (type === 'place') {
                 osc.type = 'sine'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
@@ -295,7 +304,7 @@ function startBackgroundMusic() {
             } else if (type === 'clear') {
                 [523.25, 659.25, 783.99].forEach((freq, i) => { 
                     const subOsc = audioCtx.createOscillator(); const subGain = audioCtx.createGain();
-                    subOsc.type = 'sine'; subOsc.frequency.value = freq;
+                    subOsc.type = 'sine'; subOsc.frequency.value = freq * pitchMod; // Pitch goes up with combos!
                     subGain.gain.setValueAtTime(0, now); subGain.gain.linearRampToValueAtTime(0.15, now + 0.05 + (i * 0.05));
                     subGain.gain.linearRampToValueAtTime(0, now + 0.8 + (i * 0.2));
                     subOsc.connect(subGain); subGain.connect(masterSfxGain); 
@@ -371,6 +380,9 @@ function startBackgroundMusic() {
         let gridState = new Array(gridSize * gridSize).fill(0); 
         let score = 0;
         let highScore = localStorage.getItem('meadowHighScore') || 0;
+        
+        // ✨ NEW: Track the ongoing combo multiplier!
+        let currentCombo = 0; 
 
         function updateHighScoreDisplays() {
             document.getElementById('high-score-val').innerText = highScore;
@@ -425,14 +437,12 @@ function startBackgroundMusic() {
             slot.innerHTML = ''; 
             
             const shapeDef = shapeDefinitions[Math.floor(Math.random() * shapeDefinitions.length)];
-            
             const shapeEl = document.createElement('div');
             shapeEl.classList.add('shape-container');
             
             const rows = shapeDef.length;
             const cols = shapeDef[0].length;
             const cellSize = getCellSize(); 
-
             const trayScale = 0.8; 
             const visualSize = cellSize * trayScale;
 
@@ -475,30 +485,20 @@ function startBackgroundMusic() {
 
         // --- 💣 POWER UP LOGIC ---
         function togglePowerUp(type) {
-            initAudio();
-            document.querySelector('.power-up-circles').classList.remove('hint-glow'); 
-
+            initAudio(); document.querySelector('.power-up-circles').classList.remove('hint-glow'); 
             if (powerUps[type] <= 0) { playSound('error'); return; }
             if (activePowerUp === type) { clearPowerUpState(); return; }
-            
-            clearPowerUpState(); 
-            activePowerUp = type;
+            clearPowerUpState(); activePowerUp = type;
             document.getElementById(`btn-${type}`).classList.add('power-active');
             document.getElementById('grid').style.cursor = 'crosshair';
         }
 
         function useRefresh() {
-            initAudio();
-            document.querySelector('.power-up-circles').classList.remove('hint-glow');
-
+            initAudio(); document.querySelector('.power-up-circles').classList.remove('hint-glow');
             if (powerUps.refresh <= 0) { playSound('error'); return; }
             if (activePowerUp) clearPowerUpState(); 
-            
-            playSound('clear'); 
-            ['slot-1', 'slot-2', 'slot-3'].forEach(spawnShape);
-            powerUps.refresh--;
-            updatePowerUpUI('refresh');
-            
+            playSound('clear'); ['slot-1', 'slot-2', 'slot-3'].forEach(spawnShape);
+            powerUps.refresh--; updatePowerUpUI('refresh');
             setTimeout(checkGameOver, 300); 
         }
 
@@ -531,13 +531,11 @@ function startBackgroundMusic() {
             const cell = e.target.closest('.grid-cell');
             if (!cell) return;
             const index = parseInt(cell.dataset.index);
-            const row = Math.floor(index / gridSize);
-            const col = index % gridSize;
+            const row = Math.floor(index / gridSize); const col = index % gridSize;
             
             if (activePowerUp === 'wand') {
                 if (gridState[index] === 0) { playSound('error'); return; }
-                playSound('magic');
-                clearSingleCell(index);
+                playSound('magic'); clearSingleCell(index);
                 powerUps.wand--; updatePowerUpUI('wand'); clearPowerUpState();
                 setTimeout(checkGameOver, 300); 
             } else if (activePowerUp === 'bomb') {
@@ -556,21 +554,25 @@ function startBackgroundMusic() {
             }
         });
 
+        // --- ✨ FLOATING TEXT ANIMATION ✨ ---
+        function showFloatingText(msg) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.innerHTML = msg;
+            gridContainer.appendChild(el);
+            setTimeout(() => el.remove(), 1500); // Cleans up after animation
+        }
+
         // --- 🖱️ DRAG LOGIC ---
-        let activeShape = null;
-        let originalSlot = null;
-        let offsetX = 0, offsetY = 0;
+        let activeShape = null; let originalSlot = null; let offsetX = 0, offsetY = 0;
 
         function startDrag(e) {
             e.preventDefault(); 
             if (activePowerUp) clearPowerUpState();
-            
-            initAudio(); 
-            document.querySelector('.power-up-circles').classList.remove('hint-glow'); 
+            initAudio(); document.querySelector('.power-up-circles').classList.remove('hint-glow'); 
 
             activeShape = e.currentTarget; originalSlot = activeShape.parentElement;
-            const shapeDef = JSON.parse(activeShape.dataset.shape);
-            const cellSize = getCellSize();
+            const shapeDef = JSON.parse(activeShape.dataset.shape); const cellSize = getCellSize();
             activeShape.style.gridTemplateColumns = `repeat(${shapeDef[0].length}, ${cellSize}px)`;
             activeShape.style.gridTemplateRows = `repeat(${shapeDef.length}, ${cellSize}px)`;
             const rect = activeShape.getBoundingClientRect();
@@ -596,8 +598,7 @@ function startBackgroundMusic() {
 
         function moveShape(x, y) {
             if (!activeShape) return;
-            activeShape.style.left = `${x - offsetX}px`;
-            activeShape.style.top = `${y - offsetY}px`;
+            activeShape.style.left = `${x - offsetX}px`; activeShape.style.top = `${y - offsetY}px`;
         }
 
         function endDrag(e) {
@@ -631,9 +632,13 @@ function startBackgroundMusic() {
                             }
                         }
                     }
-                    let blocksInShape = shapeDef.flat().filter(val => val === 1).length; updateScore(blocksInShape * 10);
+                    let blocksInShape = shapeDef.flat().filter(val => val === 1).length; 
+                    updateScore(blocksInShape * 10);
                     activeShape.remove(); spawnShape(originalSlot.id);
-                    checkLines(); setTimeout(checkGameOver, 300); 
+                    
+                    // Trigger line check which handles combos!
+                    checkLines(); 
+                    setTimeout(checkGameOver, 300); 
                 }
             }
             if (!droppedSuccessfully) {
@@ -688,23 +693,16 @@ function startBackgroundMusic() {
 
         function updateScore(points) {
             score += points;
-            
-            if (score > highScore) { 
-                highScore = score; 
-                localStorage.setItem('meadowHighScore', highScore); 
-                updateHighScoreDisplays(); 
-            }
-
-            let scoreEl = document.getElementById('score-value');
-            scoreEl.innerText = score;
-            
+            if (score > highScore) { highScore = score; localStorage.setItem('meadowHighScore', highScore); updateHighScoreDisplays(); }
+            let scoreEl = document.getElementById('score-value'); scoreEl.innerText = score;
             let container = document.querySelector('.current-score-container');
-            container.style.transform = 'scale(1.1)';
-            setTimeout(() => container.style.transform = 'scale(1)', 200);
+            container.style.transform = 'scale(1.1)'; setTimeout(() => container.style.transform = 'scale(1)', 200);
         }
 
+        // --- ✨ THE COMBO ENGINE ✨ ---
         function checkLines() {
             let cellsToClear = new Set(); let linesCleared = 0;
+            
             for (let r = 0; r < gridSize; r++) {
                 let rowFull = true; for (let c = 0; c < gridSize; c++) { if (gridState[r * gridSize + c] === 0) rowFull = false; }
                 if (rowFull) { linesCleared++; for (let c = 0; c < gridSize; c++) cellsToClear.add(r * gridSize + c); }
@@ -713,11 +711,51 @@ function startBackgroundMusic() {
                 let colFull = true; for (let r = 0; r < gridSize; r++) { if (gridState[r * gridSize + c] === 0) colFull = false; }
                 if (colFull) { linesCleared++; for (let r = 0; r < gridSize; r++) cellsToClear.add(r * gridSize + c); }
             }
-            if (cellsToClear.size > 0) { playSound('clear'); cellsToClear.forEach(index => clearSingleCell(index)); updateScore(linesCleared * 100); }
+            
+            if (cellsToClear.size > 0) { 
+                currentCombo++; // Increase the streak!
+                
+                // Pass combo modifier to the sound engine to raise pitch!
+                playSound('clear', currentCombo); 
+                cellsToClear.forEach(index => clearSingleCell(index)); 
+                
+                // Calculate big points!
+                let basePoints = linesCleared * 100;
+                if (linesCleared === 2) basePoints = 300;
+                if (linesCleared === 3) basePoints = 600;
+                if (linesCleared >= 4) basePoints = 1000;
+                
+                // Extra bonus for consecutive combos
+                let comboBonus = (currentCombo > 1) ? (currentCombo * 50) : 0;
+                updateScore(basePoints + comboBonus); 
+
+                // --- TRIGGER ANIMATIONS! ---
+                let animText = "";
+                if (linesCleared > 1) {
+                    const multiText = ["", "", "DOUBLE!", "TRIPLE!", "MEGA!", "INCREDIBLE!"];
+                    animText = multiText[Math.min(linesCleared, 5)];
+                }
+                
+                if (currentCombo > 1) {
+                    animText += (animText ? "<br>" : "") + "COMBO x" + currentCombo + "!";
+                }
+
+                if (animText !== "") showFloatingText(animText);
+
+                // Big impact board shake!
+                if (linesCleared >= 3 || currentCombo >= 3) {
+                    gridContainer.classList.add('board-shake');
+                    setTimeout(() => gridContainer.classList.remove('board-shake'), 400);
+                }
+
+            } else {
+                // They placed a block but didn't clear a line, reset the streak! 🛑
+                currentCombo = 0;
+            }
         }
 
         function resetGameCore() {
-            gridState.fill(0);
+            gridState.fill(0); currentCombo = 0; // Reset combos!
             cells.forEach(cell => { cell.style.backgroundImage = 'none'; cell.style.backgroundColor = '#DEB887'; cell.style.boxShadow = 'inset 1px 1px 3px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.2)'; });
             score = 0; document.getElementById('score-value').innerText = score;
             powerUps = { wand: 3, bomb: 3, refresh: 3 };
@@ -728,10 +766,7 @@ function startBackgroundMusic() {
         function resetGame() { resetGameCore(); document.getElementById('game-over-modal').style.display = 'none'; playSound('clear'); }
 
         // --- ⚙️ SETTINGS MENU LOGIC ---
-        function openSettings() { 
-            initAudio(); startBackgroundMusic(); 
-            document.getElementById('settings-modal').style.display = 'flex'; 
-        }
+        function openSettings() { initAudio(); startBackgroundMusic(); document.getElementById('settings-modal').style.display = 'flex'; }
         function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
         function resetHighScore() { if(confirm("Are you sure you want to reset your High Score?")) { highScore = 0; localStorage.setItem('meadowHighScore', 0); updateHighScoreDisplays(); playSound('error'); } }
     </script>
