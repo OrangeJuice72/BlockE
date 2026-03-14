@@ -4,10 +4,12 @@ create table if not exists public.leases (
   tenant text not null,
   unit text not null,
   date date not null,
+  reminder_time time default '09:00:00',
   rent numeric(10, 2),
   created_at timestamptz not null default now()
 );
 
+alter table public.leases add column if not exists reminder_time time default '09:00:00';
 alter table public.leases enable row level security;
 
 drop policy if exists "Users can view their own leases" on public.leases;

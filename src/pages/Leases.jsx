@@ -34,7 +34,7 @@ const Leases = ({ user }) => {
   };
 
   const handleAddToCalendar = (lease) => {
-    generateICS(lease.tenant, lease.unit, lease.date, lease.rent);
+    generateICS(lease.tenant, lease.unit, lease.date, lease.rent, lease.reminder_time || '09:00');
   };
 
   return (
@@ -74,6 +74,12 @@ const Leases = ({ user }) => {
                     year: 'numeric', 
                     month: 'short', 
                     day: 'numeric' 
+                  })}
+                </span>
+                <span className="lease-date">
+                  Time: {new Date(`2000-01-01T${lease.reminder_time || '09:00'}`).toLocaleTimeString([], {
+                    hour: 'numeric',
+                    minute: '2-digit'
                   })}
                 </span>
               </div>
