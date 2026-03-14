@@ -112,6 +112,11 @@ input {
   outline: none;
 }
 
+input[type='date'] {
+  display: block;
+  min-height: 56px;
+}
+
 input:focus {
   border-color: var(--input-focus);
   box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15);
@@ -300,6 +305,63 @@ nav a:hover {
   background: rgba(255, 255, 255, 0.14);
 }
 
+.lease-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lease-item:first-child {
+  border-top: none;
+}
+
+.lease-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.lease-tenant {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.lease-date {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.lease-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lease-action-btn {
+  width: 46px;
+  min-width: 46px;
+  height: 46px;
+  padding: 0;
+  border-radius: 14px;
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.lease-action-btn:hover {
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.delete-btn {
+  color: #fca5a5;
+}
+
 .center-shell {
   min-height: 100vh;
   display: flex;
@@ -369,5 +431,9 @@ nav a:hover {
 
   .top-signout {
     right: 16px;
+  }
+
+  .lease-item {
+    align-items: flex-start;
   }
 }
