@@ -15,17 +15,18 @@ const Layout = ({ user, onSignOut }) => {
             View Leases
           </NavLink>
         </div>
-        <div className="nav-session">
-          <span className="nav-user">{user.email}</span>
-          <button type="button" className="secondary-button" onClick={onSignOut}>
-            Sign Out
-          </button>
-        </div>
       </nav>
 
-      <main style={{ paddingTop: '100px', display: 'flex', justifyContent: 'center', minHeight: '100vh', width: '100%' }}>
+      <main style={{ paddingTop: '100px', paddingBottom: '120px', display: 'flex', justifyContent: 'center', minHeight: '100vh', width: '100%' }}>
         <Outlet />
       </main>
+
+      <div className="bottom-session">
+        <span className="nav-user">{user.email}</span>
+        <button type="button" className="secondary-button" onClick={onSignOut}>
+          Sign Out
+        </button>
+      </div>
     </>
   );
 };
