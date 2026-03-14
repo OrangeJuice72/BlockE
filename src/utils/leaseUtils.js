@@ -40,22 +40,6 @@ export const deleteLease = async (id, userId) => {
   }
 };
 
-export const promptReminderTime = () => {
-  const input = window.prompt('Calendar event time (24-hour HH:MM)', '09:00');
-
-  if (input === null) {
-    return null;
-  }
-
-  const trimmed = input.trim();
-  if (!/^\d{2}:\d{2}$/.test(trimmed)) {
-    window.alert('Use time format HH:MM, for example 09:00 or 14:30.');
-    return null;
-  }
-
-  return trimmed;
-};
-
 export const generateICS = (tenant, unit, dateVal, rent, reminderTime = '09:00') => {
   const normalizedTime = reminderTime.length === 5 ? `${reminderTime}:00` : reminderTime;
   const dateObj = new Date(`${dateVal}T${normalizedTime}`);
