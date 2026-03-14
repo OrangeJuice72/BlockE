@@ -98,16 +98,6 @@ body {
   width: 100%;
 }
 
-.schedule-row {
-  display: grid;
-  grid-template-columns: 1.3fr 0.9fr;
-  gap: 12px;
-}
-
-.schedule-field {
-  margin-bottom: 0;
-}
-
 input {
   width: 100%;
   padding: 16px 16px;
@@ -454,9 +444,5 @@ nav a:hover {
 
   .lease-item {
     align-items: flex-start;
-  }
-
-  .schedule-row {
-    grid-template-columns: 1fr;
   }
 }

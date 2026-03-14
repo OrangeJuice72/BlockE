@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { saveLease, generateICS } from '../utils/leaseUtils';
+import { generateICS, promptReminderTime, saveLease } from '../utils/leaseUtils';
 
 const Home = ({ user }) => {
   const [tenant, setTenant] = useState('');
   const [unit, setUnit] = useState('');
   const [rent, setRent] = useState('');
   const [date, setDate] = useState('');
-  const [time, setTime] = useState('09:00');
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -29,15 +28,18 @@ const Home = ({ user }) => {
     setSubmitting(true);
 
     try {
-      await saveLease({ tenant, unit, date, rent, reminderTime: time, userId: user.id });
-      generateICS(tenant, unit, date, rent, time);
+      await saveLease({ tenant, unit, date, rent, userId: user.id });
+
+      const reminderTime = promptReminderTime();
+      if (reminderTime) {
+        generateICS(tenant, unit, date, rent, reminderTime);
+      }
 
       setSuccess(true);
       setTenant('');
       setUnit('');
       setRent('');
       setDate('');
-      setTime('09:00');
 
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -96,26 +98,14 @@ const Home = ({ user }) => {
         {error && <div className="errorMessage">Please fill in all fields correctly.</div>}
         {saveError && <div className="errorMessage">{saveError}</div>}
 
-        <div className="schedule-row" style={{ marginBottom: '32px' }}>
-          <div className="input-group schedule-field">
-            <label className="date-label" htmlFor="leaseDate">Lease End Date</label>
-            <input 
-              type="date" 
-              id="leaseDate" 
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
-
-          <div className="input-group schedule-field">
-            <label className="date-label" htmlFor="leaseTime">Event Time</label>
-            <input
-              type="time"
-              id="leaseTime"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-            />
-          </div>
+        <div className="input-group" style={{ marginBottom: '32px' }}>
+          <label className="date-label" htmlFor="leaseDate">Lease End Date</label>
+          <input 
+            type="date" 
+            id="leaseDate" 
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
         </div>
 
         <button type="submit" className={success ? 'success' : ''} id="saveBtn" disabled={submitting}>

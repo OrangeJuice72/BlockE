@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { deleteLease, generateICS, getLeases } from '../utils/leaseUtils';
+import { deleteLease, generateICS, getLeases, promptReminderTime } from '../utils/leaseUtils';
 
 const Leases = ({ user }) => {
   const [leases, setLeases] = useState([]);
@@ -34,7 +34,10 @@ const Leases = ({ user }) => {
   };
 
   const handleAddToCalendar = (lease) => {
-    generateICS(lease.tenant, lease.unit, lease.date, lease.rent, lease.reminder_time || '09:00');
+    const reminderTime = promptReminderTime();
+    if (reminderTime) {
+      generateICS(lease.tenant, lease.unit, lease.date, lease.rent, reminderTime);
+    }
   };
 
   return (
@@ -74,12 +77,6 @@ const Leases = ({ user }) => {
                     year: 'numeric', 
                     month: 'short', 
                     day: 'numeric' 
-                  })}
-                </span>
-                <span className="lease-date">
-                  Time: {new Date(`2000-01-01T${lease.reminder_time || '09:00'}`).toLocaleTimeString([], {
-                    hour: 'numeric',
-                    minute: '2-digit'
                   })}
                 </span>
               </div>

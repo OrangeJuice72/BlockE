@@ -14,12 +14,11 @@ export const getLeases = async (userId) => {
   return data ?? [];
 };
 
-export const saveLease = async ({ tenant, unit, date, rent, reminderTime, userId }) => {
+export const saveLease = async ({ tenant, unit, date, rent, userId }) => {
   const { error } = await supabase.from('leases').insert({
     tenant,
     unit,
     date,
-    reminder_time: reminderTime || '09:00',
     rent: rent || null,
     user_id: userId,
   });
@@ -39,6 +38,22 @@ export const deleteLease = async (id, userId) => {
   if (error) {
     throw error;
   }
+};
+
+export const promptReminderTime = () => {
+  const input = window.prompt('Calendar event time (24-hour HH:MM)', '09:00');
+
+  if (input === null) {
+    return null;
+  }
+
+  const trimmed = input.trim();
+  if (!/^\d{2}:\d{2}$/.test(trimmed)) {
+    window.alert('Use time format HH:MM, for example 09:00 or 14:30.');
+    return null;
+  }
+
+  return trimmed;
 };
 
 export const generateICS = (tenant, unit, dateVal, rent, reminderTime = '09:00') => {
